@@ -37,7 +37,7 @@ class PactInitializer implements ContextInitializer
 
     public function supports($context)
     {
-        return $context instanceof Context;
+        return $context instanceof PactContextInterface;
     }
 
     public function initializeContext(Context $context)

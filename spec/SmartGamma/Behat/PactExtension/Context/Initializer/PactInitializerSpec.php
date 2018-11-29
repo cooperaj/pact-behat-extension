@@ -2,6 +2,7 @@
 
 namespace spec\SmartGamma\Behat\PactExtension\Context\Initializer;
 
+use Behat\Behat\Context\Context;
 use SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -21,13 +22,18 @@ class PactInitializerSpec extends ObjectBehavior
         $this->shouldHaveType(PactInitializer::class);
     }
 
-    function it_should_supports_contexts(PactContextInterface $context1)
+    function it_should_supports_pact_contexts(PactContextInterface $context)
     {
-        $this->supports($context1)->shouldReturn(true);
+        $this->supports($context)->shouldReturn(true);
     }
 
-    function it_should_not_supports_non_contexts(\stdClass $constext2)
+    function it_should_not_supports_other_behat_contexts(Context $constext)
     {
-        $this->supports($constext2)->shouldReturn(false);
+        $this->supports($constext)->shouldReturn(false);
+    }
+
+    function it_should_not_supports_non_contexts(\stdClass $constext)
+    {
+        $this->supports($constext)->shouldReturn(false);
     }
 }
