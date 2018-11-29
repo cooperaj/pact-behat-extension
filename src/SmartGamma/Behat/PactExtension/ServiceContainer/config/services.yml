@@ -1,0 +1,14 @@
+services:
+  pact.matcher:
+    class: PhpPact\Consumer\Matcher\Matcher
+
+  pact.infrastructure:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
+    arguments: ['%pact.common.config%', '%pact.providers.config%']
+
+  pact.context.initializer:
+    class: SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer
+    arguments:
+      - "@pact.matcher"
+      - "@pact.infrastructure"
+    tags: [{ name: context.initializer }]

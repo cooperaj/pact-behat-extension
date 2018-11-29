@@ -1,0 +1,43 @@
+{
+    "name": "memio/spec-gen",
+    "license": "MIT",
+    "type": "library",
+    "description": "phpspec extension for better code generation",
+    "keywords": ["phpspec", "extension", "generator", "PHP", "code"],
+    "homepage": "http://memio.github.io/spec-gen",
+    "authors": [
+        {
+            "name": "Loïc Faugeron",
+            "email": "faugeron.loic@gmail.com",
+            "homepage": "http://gnugat.github.io",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Memio\\SpecGen\\": "src/Memio/SpecGen"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Memio\\SpecGen\\Fixtures\\": "fixtures",
+            "tests\\Memio\\SpecGen\\": "tests"
+        }
+    },
+    "require": {
+        "gnugat/redaktilo": "^1.7",
+        "memio/memio": "^2.0",
+        "memio/linter": "^2.0",
+        "memio/validator": "^2.0",
+        "memio/model": "^2.0.1",
+        "memio/pretty-printer": "^2.0",
+        "memio/twig-template-engine": "^2.0.1",
+        "php": "^7.1",
+        "phpspec/phpspec": "^5.0@rc",
+        "symfony/event-dispatcher": "^3.4 || ^4.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.12",
+        "phpunit/phpunit": "^7.2"
+    }
+}

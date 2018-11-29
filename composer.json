@@ -1,0 +1,30 @@
+{
+  "name": "smart-gamma/pact-behat-extension",
+  "description": "Smart Gamma Behat extension for pact.io",
+  "license": "MIT",
+  "keywords": ["behat","pact","contract", "bdd"],
+  "authors": [
+    {
+      "name": "Evgeniy Kuzmin",
+      "email": "evgeniy.k@smart-gamma.com"
+    }
+  ],
+  "repositories": [
+    { "type": "vcs", "url": "git@github.com:smart-gamma/pact-php.git" }
+  ],
+  "type": "library",
+  "require": {
+    "php" : ">=7.0",
+    "behat/behat": "^3.4",
+    "pact-foundation/pact-php": "dev-improved-library"
+  },
+  "autoload": {
+    "psr-4": {
+      "SmartGamma\\Behat\\PactExtension\\": "src/SmartGamma/Behat/PactExtension"
+    }
+  },
+  "require-dev": {
+    "phpspec/phpspec": "^5.1",
+    "memio/spec-gen": "^0.9.0"
+  }
+}
