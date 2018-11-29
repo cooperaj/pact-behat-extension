@@ -34,7 +34,7 @@ class PactInitializer implements ContextInitializer
         $this->matcher = $matcher;
         $this->pact = $pact;
     }
-
+ghi
     public function supports($context)
     {
         return $context instanceof PactContextInterface;
