@@ -8,10 +8,12 @@ use Behat\Behat\Hook\Call\BeforeStep;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
-use PhpPact\Consumer\Matcher\Matcher;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
+use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Provider\ProviderRequest;
 
 class PactContext implements PactContextInterface
 {
@@ -46,24 +48,30 @@ class PactContext implements PactContextInterface
     private $providerEntityDescription = [];
 
     /**
-     * @var array
-     */
-    private $authHeaders = [];
-
-    /**
-     * @var Matcher
+     * @var MatcherInterface
      */
     private $matcher;
+
+    /**
+     * @var array 
+     */
+    private $providersRequest = [];
+
+    /**
+     * @var InteractionCompositor
+     */
+    private $compositor;
 
     /**
      * @var Pact
      */
     private static $pact;
 
-    public function initialize(Pact $pact, Matcher $matcher)
+    public function initialize(Pact $pact, MatcherInterface $matcher, InteractionCompositor $compositor)
     {
         static::$pact = $pact;
         $this->matcher = $matcher;
+        $this->compositor = $compositor;
     }
 
     /**
@@ -120,8 +128,8 @@ class PactContext implements PactContextInterface
         static::$pact->getBuilder($providerName)
             ->given(static::$scenarioName)
             ->uponReceiving(static::$stepName)
-            ->with($this->createRequest($providerName, $method, $uri))
-            ->willRespondWith($this->createResponse($status));
+            ->with($this->compositor->createRequest($providerName, $method, $uri))
+            ->willRespondWith($this->compositor->createResponse($status));
     }
 
     /**
@@ -139,8 +147,8 @@ class PactContext implements PactContextInterface
     {
         $responseBody = $this->parseBodyTable($table);
 
-        $request  = $this->createRequest($providerName, $method, $uri);
-        $response = $this->createResponse($status, $responseBody);
+        $request  = $this->compositor->createRequest($providerName, $method, $uri);
+        $response = $this->compositor->createResponse($status, $responseBody);
 
         $this->sanitizeProviderName($providerName);
         static::$pact->getBuilder($providerName)
@@ -166,8 +174,8 @@ class PactContext implements PactContextInterface
     {
         $responseBody = $this->parseBodyTable($table);
 
-        $request  = $this->createRequest($providerName, $method, $uri, $query);
-        $response = $this->createResponse($status, $responseBody);
+        $request  = $this->compositor->createRequest($providerName, $method, $uri, $query);
+        $response = $this->compositor->createResponse($status, $responseBody);
 
         $this->sanitizeProviderName($providerName);
         static::$pact->getBuilder($providerName)
@@ -199,10 +207,12 @@ class PactContext implements PactContextInterface
     /**
      * @Given :entity on the provider:
      */
-    public function onTheProvider($entity, TableNode $table): void
+    public function onTheProvider(string $entity, TableNode $table): bool
     {
         $this->providerEntityName          = $entity;
         $this->providerEntityData[$entity] = \array_slice($table->getRowsHash(), 1);
+
+        return true;
     }
 
     /**
@@ -219,18 +229,26 @@ class PactContext implements PactContextInterface
      */
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
-        $this->authorizeConsumer($authType, $credentials, $providerName);
+        $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials, $providerName);
     }
 
-    private function authorizeConsumer(string $authType, string $credentials, string $providerName): void
+    /**
+     * @Given :providerName request :method to :uri with parameters:
+     */
+    public function requestToWithParameters(string $providerName, string $method, string $uri, TableNode $table): bool
     {
-        switch ($authType) {
-            case 'http':
-                $this->authHeaders[$providerName] = ['Authorization' => 'Basic ' . base64_encode($credentials)];
-                break;
-            default:
-                throw new \Exception('No authorization type:' . $authType . ' is supported');
-        }
+        $this->sanitizeProviderName( $providerName);
+
+        $this->providersRequest[$providerName] = $this->compositor->createRequest();
+
+        return true;
+    }
+
+    /**
+     * @Given the :providerName request should return response with :status and body:
+     */
+    public function theProviderRequestShouldReturnResponseWithAndBody(string $providerName, string $status, TableNode $table)
+    {
     }
 
     private function getGivenSection(): string
@@ -246,49 +264,6 @@ class PactContext implements PactContextInterface
     }
 
     /**
-     * @param string $method
-     * @param string $path
-     * @param string $query
-     * @param array  $headers
-     * @param null   $body
-     *
-     * @return \PhpPact\Consumer\Model\ConsumerRequest
-     */
-    private function createRequest(
-        string $providerName,
-        string $method,
-        string $path,
-        string $query = null,
-        array $headers = [],
-        $body = null
-    ): ConsumerRequest
-    {
-        $request = new ConsumerRequest();
-
-        $request
-            ->setMethod($method)
-            ->setPath($path);
-
-        if (isset($this->authHeaders[$providerName])) {
-            $request->setHeaders($this->authHeaders[$providerName]);
-        }
-
-        if (null !== $query) {
-            $request->setQuery($query);
-        }
-
-        foreach ($headers as $key => $value) {
-            $request->addHeader($key, $value);
-        }
-
-        if (null !== $body) {
-            $request->setBody($body);
-        }
-
-        return $request;
-    }
-
-    /**
      * @param \Behat\Gherkin\Node\TableNode $tableNode
      *
      * @return mixed
@@ -298,7 +273,7 @@ class PactContext implements PactContextInterface
         return array_reduce(
             $tableNode->getHash(),
             function (array $carry, array $bodyItem) {
-                $value = $this->parseValue($bodyItem['value']);
+                $value = $this->matcher->normolizeValue($bodyItem['value']);
 
                 if (null !== $value) {
                     $carry[$bodyItem['parameter']] = $this->matcher->like($value);
@@ -308,60 +283,6 @@ class PactContext implements PactContextInterface
             },
             []
         );
-    }
-
-    /**
-     * @param int        $status
-     * @param array|null $bodyParameters
-     *
-     * @return \PhpPact\Consumer\Model\ProviderResponse
-     */
-    private function createResponse(int $status, array $bodyParameters = null): ProviderResponse
-    {
-        $response = new ProviderResponse();
-        $response
-            ->setStatus($status);
-
-        if (null !== $bodyParameters) {
-            $response->setBody($bodyParameters);
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param string $string
-     *
-     * @return bool|float|int|null|string
-     */
-    private function parseValue(string $string)
-    {
-        $string = mb_strtolower(trim($string));
-
-        if (empty($string)) {
-            return '';
-        }
-
-        if ('null' === $string) {
-            return null;
-        }
-
-        if (!preg_match('/[^0-9.]+/', $string)) {
-            if (preg_match('/[.]+/', $string)) {
-                return (float)$string;
-            }
-
-            return (int)$string;
-        }
-
-        if ('true' === $string) {
-            return true;
-        }
-        if ('false' === $string) {
-            return false;
-        }
-
-        return (string)$string;
     }
 
     private function sanitizeProviderName(string &$name): void

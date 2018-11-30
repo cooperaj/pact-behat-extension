@@ -4,14 +4,15 @@ namespace SmartGamma\Behat\PactExtension\Context\Initializer;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\Initializer\ContextInitializer;
-use PhpPact\Consumer\Matcher\Matcher;
 use SmartGamma\Behat\PactExtension\Context\PactContextInterface;
+use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 
 class PactInitializer implements ContextInitializer
 {
     /**
-     * @var Matcher
+     * @var MatcherInterface
      */
     private $matcher;
 
@@ -21,25 +22,40 @@ class PactInitializer implements ContextInitializer
     private $pact;
 
     /**
+     * @var InteractionCompositor
+     */
+    private $compositor;
+
+    /**
      * PactInitializer constructor.
      *
      * @param Matcher $matcher
      * @param Pact    $pact
      */
     public function __construct(
-        Matcher $matcher,
-        Pact $pact
+        MatcherInterface $matcher,
+        Pact $pact,
+        InteractionCompositor $compositor
     )
     {
         $this->matcher = $matcher;
         $this->pact = $pact;
+        $this->compositor = $compositor;
     }
-ghi
+
+    /**
+     * @param mixed $context
+     *
+     * @return bool
+     */
     public function supports($context)
     {
         return $context instanceof PactContextInterface;
     }
 
+    /**
+     * @param Context $context
+     */
     public function initializeContext(Context $context)
     {
         if (false === $this->supports($context)) {
@@ -47,6 +63,6 @@ ghi
             return;
         }
 
-        $context->initialize($this->pact, $this->matcher);
+        $context->initialize($this->pact, $this->matcher, $this->compositor);
     }
 }

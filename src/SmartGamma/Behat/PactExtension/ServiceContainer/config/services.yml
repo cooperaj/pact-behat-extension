@@ -2,13 +2,22 @@ services:
   pact.matcher:
     class: PhpPact\Consumer\Matcher\Matcher
 
+  behat.matcher:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\BehatMatcher
+    arguments:
+      - "@pact.matcher"
+      -
   pact.infrastructure:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
     arguments: ['%pact.common.config%', '%pact.providers.config%']
 
+  pact.compositor:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor
+
   pact.context.initializer:
     class: SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer
     arguments:
-      - "@pact.matcher"
+      - "@behat.matcher"
       - "@pact.infrastructure"
+      - "@pact.compositor"
     tags: [{ name: context.initializer }]

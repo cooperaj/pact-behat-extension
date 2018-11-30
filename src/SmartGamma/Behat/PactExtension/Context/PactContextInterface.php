@@ -3,10 +3,11 @@
 namespace SmartGamma\Behat\PactExtension\Context;
 
 use Behat\Behat\Context\Context;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use PhpPact\Consumer\Matcher\Matcher;
 
 interface PactContextInterface extends Context
 {
-    public function initialize(Pact $pact, Matcher $matcher);
+    public function initialize(Pact $pact, MatcherInterface $matcher, InteractionCompositor $compositor);
 }

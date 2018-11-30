@@ -68,5 +68,5 @@ Add to behat.yml / behat.yml.dist
           | aux_data | demo[]          |
         Then the response status code should be 200   
         
-Configure your app work with mock server on "localhost:9090" instead of your real provider url 
+ 
       
