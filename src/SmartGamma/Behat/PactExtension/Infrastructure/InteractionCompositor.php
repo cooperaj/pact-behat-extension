@@ -19,6 +19,16 @@ class InteractionCompositor
      * @var array
      */
     private $authHeaders = [];
+    
+    /**
+     * @var MatcherInterface
+     */
+    private $matcher;
+
+    public function __construct(MatcherInterface $matcher)
+    {
+        $this->matcher = $matcher;
+    }
 
     /**
      * @param string $authType
@@ -87,16 +97,45 @@ class InteractionCompositor
      *
      * @return \PhpPact\Consumer\Model\ProviderResponse
      */
-    public function createResponse(int $status, array $bodyParameters = null): ProviderResponse
+    public function createResponse(int $status, array $rawParameters = []): ProviderResponse
     {
         $response = new ProviderResponse();
         $response
             ->setStatus($status);
 
-        if (null !== $bodyParameters) {
+        $bodyParameters = $this->buildResponseBodyWithMatchers($rawParameters);
+
+        if (sizeof($bodyParameters)) {
             $response->setBody($bodyParameters);
         }
 
         return $response;
+    }
+
+    /**
+     * Initializes this class with the given options.
+     *
+     * @param array $hash {
+     *     @var string $parameter
+     *     @var string $value
+     * }
+     *
+     * @return array
+     */
+    private function buildResponseBodyWithMatchers(array $hash): array
+    {
+        return array_reduce(
+            $hash,
+            function (array $carry, array $bodyItem) {
+                $value = $this->matcher->normolizeValue($bodyItem['value']);
+                $matchType = $bodyItem['match'] ? $bodyItem['match'] : 'exact';
+                if (null !== $value) {
+                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
+                }
+
+                return $carry;
+            },
+            []
+        );
     }
 }

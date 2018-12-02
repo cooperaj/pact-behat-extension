@@ -12,11 +12,6 @@ use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 class PactInitializer implements ContextInitializer
 {
     /**
-     * @var MatcherInterface
-     */
-    private $matcher;
-
-    /**
      * @var Pact
      */
     private $pact;
@@ -33,12 +28,10 @@ class PactInitializer implements ContextInitializer
      * @param Pact    $pact
      */
     public function __construct(
-        MatcherInterface $matcher,
         Pact $pact,
         InteractionCompositor $compositor
     )
     {
-        $this->matcher = $matcher;
         $this->pact = $pact;
         $this->compositor = $compositor;
     }
@@ -63,6 +56,6 @@ class PactInitializer implements ContextInitializer
             return;
         }
 
-        $context->initialize($this->pact, $this->matcher, $this->compositor);
+        $context->initialize($this->pact, $this->compositor);
     }
 }

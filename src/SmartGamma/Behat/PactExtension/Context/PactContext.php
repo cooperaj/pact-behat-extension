@@ -6,6 +6,7 @@ use App\Kernel;
 use Behat\Behat\Hook\Call\AfterSuite;
 use Behat\Behat\Hook\Call\BeforeStep;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use PhpPact\Consumer\Model\ConsumerRequest;
@@ -48,14 +49,14 @@ class PactContext implements PactContextInterface
     private $providerEntityDescription = [];
 
     /**
-     * @var MatcherInterface
-     */
-    private $matcher;
-
-    /**
      * @var array 
      */
     private $providersRequest = [];
+
+    /**
+     * @var array
+     */
+    private $providerTextState = [];
 
     /**
      * @var InteractionCompositor
@@ -67,10 +68,9 @@ class PactContext implements PactContextInterface
      */
     private static $pact;
 
-    public function initialize(Pact $pact, MatcherInterface $matcher, InteractionCompositor $compositor)
+    public function initialize(Pact $pact, InteractionCompositor $compositor)
     {
         static::$pact = $pact;
-        $this->matcher = $matcher;
         $this->compositor = $compositor;
     }
 
@@ -99,20 +99,6 @@ class PactContext implements PactContextInterface
     }
 
     /**
-     * @AfterSuite
-     */
-    public static function teardown(AfterSuiteScope $scope): void
-    {
-        if (!$scope->getTestResult()->isPassed()) {
-            echo 'A test has failed. Skipping PACT file upload.';
-
-            return;
-        }
-
-        static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
-    }
-
-    /**
      * @Given :providerName request :method to :uri should return response with :status
      *
      * @param string $method
@@ -124,11 +110,13 @@ class PactContext implements PactContextInterface
         int $status
     ): void
     {
+        $request = $this->compositor->createRequest($providerName, $method, $uri);
+
         $this->sanitizeProviderName($providerName);
         static::$pact->getBuilder($providerName)
-            ->given(static::$scenarioName)
+            ->given($this->getGivenSection($providerName))
             ->uponReceiving(static::$stepName)
-            ->with($this->compositor->createRequest($providerName, $method, $uri))
+            ->with($request)
             ->willRespondWith($this->compositor->createResponse($status));
     }
 
@@ -145,14 +133,36 @@ class PactContext implements PactContextInterface
         TableNode $table
     ): void
     {
-        $responseBody = $this->parseBodyTable($table);
-
         $request  = $this->compositor->createRequest($providerName, $method, $uri);
-        $response = $this->compositor->createResponse($status, $responseBody);
+        $response = $this->compositor->createResponse($status, $table->getHash());
 
         $this->sanitizeProviderName($providerName);
         static::$pact->getBuilder($providerName)
-            ->given(static::$scenarioName)
+            ->given($this->getGivenSection($providerName))
+            ->uponReceiving(static::$stepName)
+            ->with($request)
+            ->willRespondWith($response);
+    }
+
+    /**
+     * @Given :providerName request :method to :uri with :query should return response with :status
+     *
+     * @param string $method
+     */
+    public function registerInteractionWithQuery(
+        string $providerName,
+        string $method,
+        string $uri,
+        string $query,
+        int $status
+    ): void
+    {
+        $request  = $this->compositor->createRequest($providerName, $method, $uri, $query);
+        $response = $this->compositor->createResponse($status);
+
+        $this->sanitizeProviderName($providerName);
+        static::$pact->getBuilder($providerName)
+            ->given($this->getGivenSection($providerName))
             ->uponReceiving(static::$stepName)
             ->with($request)
             ->willRespondWith($response);
@@ -172,14 +182,12 @@ class PactContext implements PactContextInterface
         TableNode $table
     ): void
     {
-        $responseBody = $this->parseBodyTable($table);
-
         $request  = $this->compositor->createRequest($providerName, $method, $uri, $query);
-        $response = $this->compositor->createResponse($status, $responseBody);
+        $response = $this->compositor->createResponse($status, $table->getHash());
 
         $this->sanitizeProviderName($providerName);
         static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection())
+            ->given($this->getGivenSection($providerName))
             ->uponReceiving(self::$stepName)
             ->with($request)
             ->willRespondWith($response);
@@ -195,33 +203,34 @@ class PactContext implements PactContextInterface
     }
 
     /**
-     * @AfterScenario
+     * @Given :entity on the provider :providerName:
      */
-    public function verifyInteractions(): void
+    public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
-        if (\in_array('pact', self::$tags, true)) {
-            static::$pact->verifyInteractions();
-        }
-    }
-
-    /**
-     * @Given :entity on the provider:
-     */
-    public function onTheProvider(string $entity, TableNode $table): bool
-    {
-        $this->providerEntityName          = $entity;
-        $this->providerEntityData[$entity] = \array_slice($table->getRowsHash(), 1);
+        $this->sanitizeProviderName( $providerName);
+        $this->providerEntityName[$providerName]          = $entity;
+        $this->providerEntityData[$providerName][$entity] = \array_slice($table->getRowsHash(), 1);
 
         return true;
     }
 
     /**
-     * @Given :entity as :description on the provider:
+     * @Given :entity as :description on the provider :providerName:
      */
-    public function onTheProviderWithDescription($entity, $description, TableNode $table): void
+    public function onTheProviderWithDescription(string $entity, string $providerName, string $description, TableNode $table): void
     {
-        $this->onTheProvider($entity, $table);
-        $this->providerEntityDescription[$entity] = $description ? '(' . $description . ')' : '';
+        $this->sanitizeProviderName( $providerName);
+        $this->onTheProvider($entity, $providerName, $table);
+        $this->providerEntityDescription[$providerName][$entity] = $description ? '(' . $description . ')' : '';
+    }
+
+    /**
+     * @Given provider :providerName state:
+     */
+    public function providerState(string $providerName, PyStringNode $state): void
+    {
+        $this->sanitizeProviderName($providerName);
+        $this->providerTextState[$providerName] = $state->getRaw();
     }
 
     /**
@@ -251,12 +260,20 @@ class PactContext implements PactContextInterface
     {
     }
 
-    private function getGivenSection(): string
+    private function getGivenSection(string $providerName): string
     {
-        if (\count($this->providerEntityData)) {
-            $given = 'Create ' . $this->providerEntityName . $this->providerEntityDescription[$this->providerEntityName] . ':' .
-                \json_encode($this->providerEntityData[$this->providerEntityName]);
+        if (isset($this->providerEntityData[$providerName]) && sizeof($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]])) {
+
+            $given = 'Create '
+                    . $this->providerEntityName[$providerName]
+                    . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
+                    . ':'
+                    . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
+        } elseif (isset($this->providerTextState[$providerName])) {
+
+            $given = $this->providerTextState[$providerName];
         } else {
+
             $given = self::$scenarioName;
         }
 
@@ -264,25 +281,27 @@ class PactContext implements PactContextInterface
     }
 
     /**
-     * @param \Behat\Gherkin\Node\TableNode $tableNode
-     *
-     * @return mixed
+     * @AfterScenario
      */
-    private function parseBodyTable(TableNode $tableNode)
+    public function verifyInteractions(): void
     {
-        return array_reduce(
-            $tableNode->getHash(),
-            function (array $carry, array $bodyItem) {
-                $value = $this->matcher->normolizeValue($bodyItem['value']);
+        if (\in_array('pact', self::$tags, true)) {
+            static::$pact->verifyInteractions();
+        }
+    }
 
-                if (null !== $value) {
-                    $carry[$bodyItem['parameter']] = $this->matcher->like($value);
-                }
+    /**
+     * @AfterSuite
+     */
+    public static function teardown(AfterSuiteScope $scope): void
+    {
+        if (!$scope->getTestResult()->isPassed()) {
+            echo 'A test has failed. Skipping PACT file upload.';
 
-                return $carry;
-            },
-            []
-        );
+            return;
+        }
+
+        static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
     }
 
     private function sanitizeProviderName(string &$name): void

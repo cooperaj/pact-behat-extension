@@ -7,14 +7,15 @@ use SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SmartGamma\Behat\PactExtension\Context\PactContextInterface;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use PhpPact\Consumer\Matcher\Matcher;
 
 class PactInitializerSpec extends ObjectBehavior
 {
-    function let(Pact $pact,Matcher $matcher)
+    function let(Pact $pact,InteractionCompositor $compositor)
     {
-        $this->beConstructedWith($matcher,$pact);
+        $this->beConstructedWith($pact, $compositor);
     }
 
     function it_is_initializable()

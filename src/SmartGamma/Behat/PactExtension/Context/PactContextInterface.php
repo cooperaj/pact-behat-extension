@@ -9,5 +9,5 @@ use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 
 interface PactContextInterface extends Context
 {
-    public function initialize(Pact $pact, MatcherInterface $matcher, InteractionCompositor $compositor);
+    public function initialize(Pact $pact, InteractionCompositor $compositor);
 }

@@ -28,14 +28,22 @@ class BehatMatcher implements MatcherInterface
     }
 
     /**
+     * @param $value
+     *
+     * @return mixed
+     */
+    public function exact($value)
+    {
+        return $value;
+    }
+
+    /**
      * @param string $string
      *
      * @return bool|float|int|null|string
      */
     public function normolizeValue(string $string)
     {
-        $string = mb_strtolower(trim($string));
-
         if (empty($string)) {
             return '';
         }
