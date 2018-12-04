@@ -11,6 +11,7 @@ use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
+use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
@@ -51,7 +52,7 @@ class PactContext implements PactContextInterface
     /**
      * @var array 
      */
-    private $providersRequest = [];
+    private $consumerRequest = [];
 
     /**
      * @var array
@@ -194,12 +195,51 @@ class PactContext implements PactContextInterface
     }
 
     /**
+     * @Given :providerName request :method to :uri with parameters:
+     */
+    public function requestToWithParameters(string $providerName, string $method, string $uri, TableNode $table): bool
+    {
+        $requestBody = $table->getRowsHash();
+        array_shift($requestBody);
+
+        $this->consumerRequest[$providerName] = $this->compositor->createRequest($providerName, $method, $uri, null, [], $requestBody);
+
+        return true;
+    }
+
+    /**
+     * @Given request above to :providerName should return response with :status and body:
+     */
+    public function theProviderRequestShouldReturnResponseWithAndBody(string $providerName, string $status, TableNode $table): bool
+    {
+        if(false === isset($this->consumerRequest[$providerName])) {
+            throw new NoConsumerRequestDefined('No consumer Request defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
+        }
+
+        $request = $this->consumerRequest[$providerName];
+        $response = $this->compositor->createResponse($status, $table->getHash());
+
+        $this->sanitizeProviderName($providerName);
+        static::$pact->getBuilder($providerName)
+            ->given($this->getGivenSection($providerName))
+            ->uponReceiving(self::$stepName)
+            ->with($request)
+            ->willRespondWith($response);
+
+        unset($this->consumerRequest[$providerName]);
+
+        return true;
+    }
+
+    /**
      * @Given :providerName API is available
      */
-    public function keeperRegistryIsAvailable(string $providerName): void
+    public function keeperRegistryIsAvailable(string $providerName): bool
     {
         $this->sanitizeProviderName($providerName);
         static::$pact->startServer($providerName);
+
+        return true;
     }
 
     /**
@@ -241,25 +281,6 @@ class PactContext implements PactContextInterface
         $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials, $providerName);
     }
 
-    /**
-     * @Given :providerName request :method to :uri with parameters:
-     */
-    public function requestToWithParameters(string $providerName, string $method, string $uri, TableNode $table): bool
-    {
-        $this->sanitizeProviderName( $providerName);
-
-        $this->providersRequest[$providerName] = $this->compositor->createRequest();
-
-        return true;
-    }
-
-    /**
-     * @Given the :providerName request should return response with :status and body:
-     */
-    public function theProviderRequestShouldReturnResponseWithAndBody(string $providerName, string $status, TableNode $table)
-    {
-    }
-
     private function getGivenSection(string $providerName): string
     {
         if (isset($this->providerEntityData[$providerName]) && sizeof($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]])) {
@@ -269,13 +290,17 @@ class PactContext implements PactContextInterface
                     . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
                     . ':'
                     . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
-        } elseif (isset($this->providerTextState[$providerName])) {
 
-            $given = $this->providerTextState[$providerName];
-        } else {
-
-            $given = self::$scenarioName;
+            return $given;
         }
+
+        if (isset($this->providerTextState[$providerName])) {
+            $given = $this->providerTextState[$providerName];
+
+            return $given;
+        }
+
+        $given = self::$scenarioName;
 
         return $given;
     }
