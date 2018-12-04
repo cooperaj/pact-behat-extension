@@ -34,15 +34,59 @@ class BehatMatcher implements MatcherInterface
      */
     public function exact($value)
     {
-        return $value;
+        return $this->normolizeValue($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function dateTimeISO8601(string $value)
+    {
+        return $this->pactMatcher->dateTimeISO8601($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function boolean(string $value)
+    {
+        return $this->pactMatcher->boolean($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function integer(string$value)
+    {
+        return $this->pactMatcher->integer($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function uuid(string $value)
+    {
+        return $this->pactMatcher->uuid($value);
     }
 
     /**
      * @param string $string
      *
-     * @return bool|float|int|null|string
+     * @return bool | float | int | null | string
      */
-    public function normolizeValue(string $string)
+    private function normolizeValue(string $string)
     {
         if (empty($string)) {
             return '';
@@ -63,6 +107,7 @@ class BehatMatcher implements MatcherInterface
         if ('true' === $string) {
             return true;
         }
+
         if ('false' === $string) {
             return false;
         }

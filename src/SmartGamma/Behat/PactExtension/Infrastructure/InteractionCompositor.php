@@ -118,6 +118,7 @@ class InteractionCompositor
      * @param array $hash {
      *     @var string $parameter
      *     @var string $value
+     *     @var string $match
      * }
      *
      * @return array
@@ -127,10 +128,9 @@ class InteractionCompositor
         return array_reduce(
             $hash,
             function (array $carry, array $bodyItem) {
-                $value = $this->matcher->normolizeValue($bodyItem['value']);
                 $matchType = $bodyItem['match'] ? $bodyItem['match'] : 'exact';
-                if (null !== $value) {
-                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
+                if ('null' !== $bodyItem['value']) {
+                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($bodyItem['value']);
                 }
 
                 return $carry;
