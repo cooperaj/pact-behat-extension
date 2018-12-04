@@ -25,8 +25,8 @@ Add to behat.yml / behat.yml.dist
                 PACT_CORS: false
                 PACT_BROKER_URI: https://pact.youdomain.com
                 PACT_OUTPUT_DIR: var/pact/
-                PACT_BROKER_HTTP_AUTH_USER: ci
-                PACT_BROKER_HTTP_AUTH_PASS: cipass
+                PACT_BROKER_HTTP_AUTH_USER: user
+                PACT_BROKER_HTTP_AUTH_PASS: pass
                 PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT: 10
             providers:
                 - provider1_name: localhost:9090
@@ -34,7 +34,7 @@ Add to behat.yml / behat.yml.dist
                 #- provider2_name localhost:8889
 
 
-> Remove  PACT_BROKER_HTTP_AUTH_USER, PACT_BROKER_HTTP_AUTH_PASS: cipass if your pact broker is not http auth  protected
+> Remove  PACT_BROKER_HTTP_AUTH_USER, PACT_BROKER_HTTP_AUTH_PASS if your pact broker is not http auth  protected
 
 ## Usage
 
@@ -60,6 +60,18 @@ Add to behat.yml / behat.yml.dist
           | blocked      | false                     |
           | createdAt    | 2018-05-11T11:00:00+00:00 |
 
+ - Define Pact Interaction for complex request(POST body)
+ 
+        Given "provider1 name" request 'POST' to '/api/device/5af55347c9764a6a01684228/first-frame' with parameters:
+          | parameter    | value                     |
+          | id           | 5af55347c9764a6a01684228  |
+          | imei         | 35373808218O868           |
+        And request above to "provider1 name" should return response with 200 and body:
+          | parameter    | value                     | 
+          | typeName     | SOME                      | 
+          | activated    | true                      | 
+          | blocked      | false                     | 
+        
 - Execute your consumer scenario steps  
 
         When I send a 'GET' request to '/api/entry' with parameters:
@@ -68,5 +80,18 @@ Add to behat.yml / behat.yml.dist
           | aux_data | demo[]          |
         Then the response status code should be 200   
         
+### Matchers
+        
+You can define you response accoring to Postel law with matchers as:
+        
+        Given "provider1 name" request 'GET' to '/api/some/1' should return response with 200 and body:
+          | parameter    | value                     | match           |
+          | id           | 5af55347c9764a6a01684228  | like            |
+          | field1       | 35373808218O868           |                 | 
+          | blocked      | false                     | boolean         |
+          | createdAt    | 2018-05-11T11:00:00+00:00 | dateTimeISO8601 |
  
-      
+ - like - will define type matching
+ - empty value - will use exac value matching
+ - boolean - will check bool type
+ - dateTimeISO8601 - will match to date format      
