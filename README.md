@@ -71,7 +71,19 @@ Add to behat.yml / behat.yml.dist
           | typeName     | SOME                      | 
           | activated    | true                      | 
           | blocked      | false                     | 
-        
+
+- Define nested structure
+
+        Given "<device>" object should have follow structure:
+          | parameter | value                    |
+          | id        | 5af55347c9764a6a01684228 |
+          | imei      | 35373808218O868          |
+          | iccid     | 89883O3000000277040      |
+        Given "device registry" request 'GET' to '/api/devices' should return response with 200 and body:
+          | parameter | value    | match    |
+          | count     | 2        | integer  |
+          | devices   | <device> | eachLike |
+          
 - Execute your consumer scenario steps  
 
         When I send a 'GET' request to '/api/entry' with parameters:
@@ -92,6 +104,6 @@ You can define you response accoring to Postel law with matchers as:
           | createdAt    | 2018-05-11T11:00:00+00:00 | dateTimeISO8601 |
  
  - like - will define type matching
- - empty value - will use exac value matching
+ - empty value - will use exact value
  - boolean - will check bool type
  - dateTimeISO8601 - will match to date format      

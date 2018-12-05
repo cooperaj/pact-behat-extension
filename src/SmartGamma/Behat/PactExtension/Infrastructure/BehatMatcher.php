@@ -82,6 +82,16 @@ class BehatMatcher implements MatcherInterface
     }
 
     /**
+     * @param array $object
+     *
+     * @return array
+     */
+    public function eachLike(array $object)
+    {
+        return $this->pactMatcher->eachLike($object);
+    }
+
+    /**
      * @param string $string
      *
      * @return bool | float | int | null | string

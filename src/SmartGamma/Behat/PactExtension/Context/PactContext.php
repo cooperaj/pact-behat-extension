@@ -50,7 +50,7 @@ class PactContext implements PactContextInterface
     private $providerEntityDescription = [];
 
     /**
-     * @var array 
+     * @var array
      */
     private $consumerRequest = [];
 
@@ -71,7 +71,7 @@ class PactContext implements PactContextInterface
 
     public function initialize(Pact $pact, InteractionCompositor $compositor)
     {
-        static::$pact = $pact;
+        static::$pact     = $pact;
         $this->compositor = $compositor;
     }
 
@@ -212,11 +212,11 @@ class PactContext implements PactContextInterface
      */
     public function theProviderRequestShouldReturnResponseWithAndBody(string $providerName, string $status, TableNode $table): bool
     {
-        if(false === isset($this->consumerRequest[$providerName])) {
+        if (false === isset($this->consumerRequest[$providerName])) {
             throw new NoConsumerRequestDefined('No consumer Request defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
         }
 
-        $request = $this->consumerRequest[$providerName];
+        $request  = $this->consumerRequest[$providerName];
         $response = $this->compositor->createResponse($status, $table->getHash());
 
         $this->sanitizeProviderName($providerName);
@@ -229,6 +229,21 @@ class PactContext implements PactContextInterface
         unset($this->consumerRequest[$providerName]);
 
         return true;
+    }
+
+    /**
+     * @Given :object object should have follow structure:
+     */
+    public function hasFollowStructureInTheResponseAbove($object, TableNode $table)
+    {
+        if(false == preg_match('/^<.*>$/', $object)) {
+            throw new \InvalidResponseObjectNameFormat('Response object name should be taken in "<...>" like <name>');
+        }
+
+        $eachParameters = $table->getRowsHash();
+        array_shift($eachParameters);
+
+        $this->compositor->addMatchingStructure($object, $eachParameters);
     }
 
     /**
@@ -247,7 +262,7 @@ class PactContext implements PactContextInterface
      */
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
-        $this->sanitizeProviderName( $providerName);
+        $this->sanitizeProviderName($providerName);
         $this->providerEntityName[$providerName]          = $entity;
         $this->providerEntityData[$providerName][$entity] = \array_slice($table->getRowsHash(), 1);
 
@@ -259,7 +274,7 @@ class PactContext implements PactContextInterface
      */
     public function onTheProviderWithDescription(string $entity, string $providerName, string $description, TableNode $table): void
     {
-        $this->sanitizeProviderName( $providerName);
+        $this->sanitizeProviderName($providerName);
         $this->onTheProvider($entity, $providerName, $table);
         $this->providerEntityDescription[$providerName][$entity] = $description ? '(' . $description . ')' : '';
     }
@@ -286,10 +301,10 @@ class PactContext implements PactContextInterface
         if (isset($this->providerEntityData[$providerName]) && sizeof($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]])) {
 
             $given = 'Create '
-                    . $this->providerEntityName[$providerName]
-                    . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
-                    . ':'
-                    . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
+                . $this->providerEntityName[$providerName]
+                . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
+                . ':'
+                . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
 
             return $given;
         }

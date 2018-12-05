@@ -25,6 +25,12 @@ class InteractionCompositor
      */
     private $matcher;
 
+    /**
+     * @var array
+     */
+    private $matchingStructure = [];
+
+
     public function __construct(MatcherInterface $matcher)
     {
         $this->matcher = $matcher;
@@ -112,6 +118,11 @@ class InteractionCompositor
         return $response;
     }
 
+    public function addMatchingStructure(string $objectName, array $structure)
+    {
+        $this->matchingStructure[$objectName] = $structure;
+    }
+
     /**
      * Initializes this class with the given options.
      *
@@ -128,9 +139,12 @@ class InteractionCompositor
         return array_reduce(
             $hash,
             function (array $carry, array $bodyItem) {
-                $matchType = $bodyItem['match'] ? $bodyItem['match'] : 'exact';
-                if ('null' !== $bodyItem['value']) {
-                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($bodyItem['value']);
+
+                $matchType = $bodyItem['match'] ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
+                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $this->matchingStructure[$bodyItem['value']] : $bodyItem['value'];
+
+                if ('null' !== $value ) {
+                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
                 }
 
                 return $carry;
