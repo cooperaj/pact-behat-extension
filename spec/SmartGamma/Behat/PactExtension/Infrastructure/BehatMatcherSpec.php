@@ -61,5 +61,4 @@ class BehatMatcherSpec extends ObjectBehavior
     {
         $this->eachLike(['object' => 'structure'])->shouldBeArray();
     }
-
 }

@@ -10,9 +10,15 @@ use PhpPact\Standalone\MockService\MockServer;
 use PhpPact\Standalone\MockService\MockServerConfig;
 use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
+use SmartGamma\Behat\PactExtension\Exception\NoMockServerConfig;
 
 class Pact
 {
+    /**
+     * @var MockServerFactory
+     */
+    private $mockServerFactory;
+
     /**
      * @var array
      */
@@ -59,8 +65,9 @@ class Pact
      * @param array $config
      * @param array $providersConfig
      */
-    public function __construct(array $config, array $providersConfig)
+    public function __construct(MockServerFactory $mockServerFactory, array $config, array $providersConfig)
     {
+        $this->mockServerFactory = $mockServerFactory;
         $this->config          = $config;
         $this->providersConfig = $providersConfig;
         $this->tag             = $this->getPactTag();
@@ -88,7 +95,7 @@ class Pact
     private function registerServers(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->servers[$providerName] = new MockServer($mockServerConfig);
+            $this->servers[$providerName] = $this->mockServerFactory->create($mockServerConfig);
         }
     }
 
@@ -104,7 +111,7 @@ class Pact
      *
      * @return MockServerConfig
      */
-    public function createMockServerConfig(array $providerConfig): MockServerConfig
+    private function createMockServerConfig(array $providerConfig): MockServerConfig
     {
         $config = new MockServerConfig();
         $config
@@ -197,14 +204,16 @@ class Pact
         return \in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
     }
 
-    public function startServer(string $providerName): void
+    public function startServer(string $providerName): bool
     {
         if (isset($this->startedServers[$providerName])) {
-            return;
+            throw new NoMockServerConfig('No mock server config was defined for the provider:' . $providerName);
         }
 
         $this->servers[$providerName]->start();
         $this->startedServers[$providerName] = true;
+
+        return true;
     }
 
     public function verifyInteractions()
