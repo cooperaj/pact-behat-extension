@@ -3,6 +3,7 @@
 namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 
 use PhpPact\Consumer\Model\ConsumerRequest;
+use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Exception\NoAuthTypeSupported;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 use PhpSpec\ObjectBehavior;
@@ -42,6 +43,6 @@ class InteractionCompositorSpec extends ObjectBehavior
 
     public function it_create_provider_response()
     {
-        $this->createResponse(200);
+        $this->createResponse(200)->shouldBeAnInstanceOf(ProviderResponse::class);
     }
 }
