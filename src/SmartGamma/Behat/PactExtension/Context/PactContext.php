@@ -252,6 +252,7 @@ class PactContext implements PactContextInterface
     public function keeperRegistryIsAvailable(string $providerName): bool
     {
         $this->sanitizeProviderName($providerName);
+
         static::$pact->startServer($providerName);
 
         return true;

@@ -37,6 +37,12 @@ class PactSpec extends ObjectBehavior
 
     public function it_start_provider_mock_server()
     {
-        $this->startServer(self::PROVIDER_NAME)->shouldBe(true);
+        $this->startServer(self::PROVIDER_NAME)->shouldBe(self::MOCK_SERVER_PID);
+    }
+
+    public function it_start_singleton_provider_mock_server()
+    {
+        $this->startServer(self::PROVIDER_NAME)->shouldBe(self::MOCK_SERVER_PID);
+        $this->startServer(self::PROVIDER_NAME)->shouldBe(self::MOCK_SERVER_PID);
     }
 }

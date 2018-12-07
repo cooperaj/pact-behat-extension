@@ -10,7 +10,6 @@ use PhpPact\Standalone\MockService\MockServer;
 use PhpPact\Standalone\MockService\MockServerConfig;
 use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
-use SmartGamma\Behat\PactExtension\Exception\NoMockServerConfig;
 
 class Pact
 {
@@ -204,16 +203,16 @@ class Pact
         return \in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
     }
 
-    public function startServer(string $providerName): bool
+    public function startServer(string $providerName): int
     {
         if (isset($this->startedServers[$providerName])) {
-            throw new NoMockServerConfig('No mock server config was defined for the provider:' . $providerName);
+            return $this->startedServers[$providerName];
         }
 
-        $this->servers[$providerName]->start();
-        $this->startedServers[$providerName] = true;
+        $pid = $this->servers[$providerName]->start();
+        $this->startedServers[$providerName] = $pid;
 
-        return true;
+        return $pid;
     }
 
     public function verifyInteractions()
