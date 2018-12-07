@@ -101,15 +101,13 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given :providerName request :method to :uri should return response with :status
-     *
-     * @param string $method
      */
     public function registerInteraction(
         string $providerName,
         string $method,
         string $uri,
         int $status
-    ): void
+    ): bool
     {
         $request = $this->compositor->createRequest($providerName, $method, $uri);
 
@@ -119,6 +117,8 @@ class PactContext implements PactContextInterface
             ->uponReceiving(static::$stepName)
             ->with($request)
             ->willRespondWith($this->compositor->createResponse($status));
+
+        return true;
     }
 
     /**
