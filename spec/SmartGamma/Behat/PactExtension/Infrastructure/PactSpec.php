@@ -45,4 +45,9 @@ class PactSpec extends ObjectBehavior
         $this->startServer(self::PROVIDER_NAME)->shouldBe(self::MOCK_SERVER_PID);
         $this->startServer(self::PROVIDER_NAME)->shouldBe(self::MOCK_SERVER_PID);
     }
+
+    public function it_verifies_interactions()
+    {
+        $this->verifyInteractions()->shouldBe(true);
+    }
 }

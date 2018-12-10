@@ -215,12 +215,17 @@ class Pact
         return $pid;
     }
 
-    public function verifyInteractions()
+    /**
+     * @return bool
+     */
+    public function verifyInteractions(): bool
     {
         foreach ($this->startedServers as $providerName => $val) {
             $this->builders[$providerName]->verify();
             $this->mockServerHttpServices[$providerName]->deleteAllInteractions();
         }
+
+        return true;
     }
 
     /**
