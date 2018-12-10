@@ -13,6 +13,7 @@ class PactSpec extends ObjectBehavior
     const PROVIDER_NAME = 'some_provider_name';
     const CONSUMER_NAME = 'some_consumer_name';
     const MOCK_SERVER_PID = 1000;
+    const CONSUMER_VERSION = '1.0.0';
 
     function let(MockServerFactory $mockServerFactory, MockServerInterface $mockServer)
     {
@@ -49,5 +50,10 @@ class PactSpec extends ObjectBehavior
     public function it_verifies_interactions()
     {
         $this->verifyInteractions()->shouldBe(true);
+    }
+
+    public function it_finalizes_testing()
+    {
+        $this->finalize(self::CONSUMER_VERSION)->shouldBe(true);
     }
 }

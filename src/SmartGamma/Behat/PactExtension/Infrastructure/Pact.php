@@ -6,7 +6,6 @@ use GuzzleHttp\Psr7\Uri;
 use PhpPact\Broker\Service\BrokerHttpClient;
 use PhpPact\Consumer\InteractionBuilder;
 use PhpPact\Http\GuzzleClient;
-use PhpPact\Standalone\MockService\MockServer;
 use PhpPact\Standalone\MockService\MockServerConfig;
 use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
@@ -98,6 +97,7 @@ class Pact
         }
     }
 
+
     private function registerBuilders(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
@@ -126,7 +126,12 @@ class Pact
         return $config;
     }
 
-    public function finalize(string $consumerVersion): void
+    /**
+     * @param string $consumerVersion
+     *
+     * @return bool
+     */
+    public function finalize(string $consumerVersion): bool
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
             if (!isset($this->startedServers[$providerName])) {
@@ -142,6 +147,8 @@ class Pact
             $json = $this->getPactJson($providerName);
             $this->publishToBroker($mockServerConfig, $json, $consumerVersion);
         }
+
+        return true;
     }
 
     /**
@@ -181,6 +188,9 @@ class Pact
         echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $tag;
     }
 
+    /**
+     * @return string
+     */
     private function getPactTag(): string
     {
         if (!($tag = \getenv('PACT_CONSUMER_TAG'))) {
@@ -190,6 +200,9 @@ class Pact
         return $tag;
     }
 
+    /**
+     * @return string
+     */
     private function getCurrentGitBranch(): string
     {
         $output = exec('git symbolic-ref HEAD');
@@ -198,11 +211,21 @@ class Pact
         return end($parts);
     }
 
+    /**
+     * @param string $branch
+     *
+     * @return string
+     */
     private function resolvePactTag(string $branch)
     {
         return \in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
     }
 
+    /**
+     * @param string $providerName
+     *
+     * @return int
+     */
     public function startServer(string $providerName): int
     {
         if (isset($this->startedServers[$providerName])) {
