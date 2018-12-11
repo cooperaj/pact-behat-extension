@@ -256,17 +256,10 @@ class PactContext implements PactContextInterface
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
         $this->sanitizeProviderName($providerName);
-/*
-        $this->providerEntityName[$providerName]          = $entity;
-        $this->providerEntityData[$providerName][$entity] = \array_slice($table->getRowsHash(), 1);
-*/
         $parameters = \array_slice($table->getRowsHash(), 1);
 
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters);
         static::$providerState->addInjectorState($injectorState);
-        //$state = new ProviderInjectorStateDTO($providerName, $entity, $parameters);
-
-       // static::$pact->registerProviderState($state);
 
         return true;
     }
@@ -277,8 +270,6 @@ class PactContext implements PactContextInterface
     public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): void
     {
         $this->sanitizeProviderName($providerName);
-       // $this->onTheProvider($entity, $providerName, $table);
-        //$this->providerEntityDescription[$providerName][$entity] = $description ? '(' . $description . ')' : '';
         $parameters = \array_slice($table->getRowsHash(), 1);
 
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters, $entityDescription);
@@ -291,7 +282,6 @@ class PactContext implements PactContextInterface
     public function providerState(string $providerName, PyStringNode $state): void
     {
         $this->sanitizeProviderName($providerName);
-        //$this->providerTextState[$providerName] = $state->getRaw();
         $textStateDTO = new PlainTextStateDTO($providerName, $state->getRaw());
         static::$providerState->setPlainTextState($textStateDTO);
     }
