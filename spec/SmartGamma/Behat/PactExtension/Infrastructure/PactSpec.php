@@ -2,13 +2,15 @@
 
 namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 
+use PhpPact\Consumer\InteractionBuilder;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
-use SmartGamma\Behat\PactExtension\Infrastructure\MockServerFactory;
-use SmartGamma\Behat\PactExtension\Infrastructure\MockServerInterface;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -23,6 +25,8 @@ class PactSpec extends ObjectBehavior
     function let(
         MockServerFactory $mockServerFactory,
         MockServerInterface $mockServer,
+        InteractionBuilderFactory $interactionBuilderFactory,
+        InteractionBuilder $interactionBuilder,
         InteractionCompositor $interactionCompositor,
         ConsumerRequest $consumerRequest,
         ProviderResponse $providerResponse
@@ -39,10 +43,17 @@ class PactSpec extends ObjectBehavior
         $mockServer->start()->willReturn(self::MOCK_SERVER_PID);
         $mockServerFactory->create(Argument::any())->willReturn($mockServer);
 
+        $interactionBuilder->given(Argument::any())->willReturn($interactionBuilder);
+        $interactionBuilder->uponReceiving(Argument::any())->willReturn($interactionBuilder);
+        $interactionBuilder->with(Argument::any())->willReturn($interactionBuilder);
+        $interactionBuilder->willRespondWith(Argument::any())->willReturn(true);
+
+        $interactionBuilderFactory->create(Argument::any())->willReturn($interactionBuilder);
+
         $interactionCompositor->createRequestFromDTO(Argument::type(InteractionRequestDTO::class))->willReturn($consumerRequest);
         $interactionCompositor->createResponseFromDTO(Argument::type(InteractionResponseDTO::class))->willReturn($providerResponse);
 
-        $this->beConstructedWith($mockServerFactory, $interactionCompositor, $config, $providerConfig);
+        $this->beConstructedWith($mockServerFactory, $interactionBuilderFactory, $interactionCompositor, $config, $providerConfig);
     }
 
     function it_is_initializable()

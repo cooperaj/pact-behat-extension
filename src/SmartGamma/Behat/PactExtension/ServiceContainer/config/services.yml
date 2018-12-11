@@ -8,7 +8,10 @@ services:
       - "@pact.matcher"
 
   pact.mock_server.factory:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\MockServerFactory
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory
+
+  pact.interaction_builder.factory:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory
 
   pact.compositor:
     class: SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor
@@ -19,6 +22,7 @@ services:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
     arguments:
       - '@pact.mock_server.factory'
+      - '@pact.interaction_builder.factory'
       - '@pact.compositor'
       - '%pact.common.config%'
       - '%pact.providers.config%'

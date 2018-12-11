@@ -9,6 +9,8 @@ use PhpPact\Http\GuzzleClient;
 use PhpPact\Standalone\MockService\MockServerConfig;
 use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory;
 
 class Pact
 {
@@ -16,6 +18,11 @@ class Pact
      * @var MockServerFactory
      */
     private $mockServerFactory;
+
+    /**
+     * @var InteractionBuilderFactory
+     */
+    private $interactionBuilderFactory;
 
     /**
      * @var InteractionCompositor
@@ -65,16 +72,26 @@ class Pact
     /**
      * Pact constructor.
      *
-     * @param array $config
-     * @param array $providersConfig
+     * @param MockServerFactory         $mockServerFactory
+     * @param InteractionBuilderFactory $interactionBuilderFactory
+     * @param InteractionCompositor     $interactionCompositor
+     * @param array                     $config
+     * @param array                     $providersConfig
      */
-    public function __construct(MockServerFactory $mockServerFactory, InteractionCompositor $interactionCompositor, array $config, array $providersConfig)
+    public function __construct(
+        MockServerFactory $mockServerFactory,
+        InteractionBuilderFactory $interactionBuilderFactory,
+        InteractionCompositor $interactionCompositor,
+        array $config,
+        array $providersConfig
+    )
     {
-        $this->mockServerFactory     = $mockServerFactory;
-        $this->interactionCompositor = $interactionCompositor;
-        $this->config                = $config;
-        $this->providersConfig       = $providersConfig;
-        $this->tag                   = $this->getPactTag();
+        $this->mockServerFactory         = $mockServerFactory;
+        $this->interactionBuilderFactory = $interactionBuilderFactory;
+        $this->interactionCompositor     = $interactionCompositor;
+        $this->config                    = $config;
+        $this->providersConfig           = $providersConfig;
+        $this->tag                       = $this->getPactTag();
         $this->registerMockServerConfigs();
         $this->registerMockServerHttpServices();
         $this->registerServers();
@@ -107,7 +124,7 @@ class Pact
     private function registerBuilders(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->builders[$providerName] = new InteractionBuilder($mockServerConfig);
+            $this->builders[$providerName] = $this->interactionBuilderFactory->create($mockServerConfig);
         }
     }
 
@@ -261,7 +278,7 @@ class Pact
     {
         $providerName = $requestDTO->getProviderName();
 
-        $request = $this->interactionCompositor->createRequestFromDTO($requestDTO);
+        $request  = $this->interactionCompositor->createRequestFromDTO($requestDTO);
         $response = $this->interactionCompositor->createResponseFromDTO($responseDTO);
 
         return $this->builders[$providerName]
