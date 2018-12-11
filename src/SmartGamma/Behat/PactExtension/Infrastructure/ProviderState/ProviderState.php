@@ -52,7 +52,7 @@ class ProviderState implements ProviderStateInterface
         if (isset($this->injectors[$providerName])) {
             /** @var InjectorStateDTO $injector */
             $injector = $this->injectors[$providerName][0];
-            $given = 'Create '
+            $given    = 'Create '
                 . $injector->getEntityName()
                 . $injector->getEntityDescription()
                 . ':'

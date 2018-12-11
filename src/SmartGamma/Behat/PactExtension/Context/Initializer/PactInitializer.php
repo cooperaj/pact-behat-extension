@@ -31,7 +31,7 @@ class PactInitializer implements ContextInitializer
         InteractionCompositor $compositor
     )
     {
-        $this->pact = $pact;
+        $this->pact       = $pact;
         $this->compositor = $compositor;
     }
 

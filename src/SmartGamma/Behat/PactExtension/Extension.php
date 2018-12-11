@@ -9,9 +9,6 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-/**
- * Class MailerExtension.
- */
 class Extension implements ExtensionInterface
 {
     const PARAMETER_NAME_PACT_PROVIDERS = 'pact.providers.config';
