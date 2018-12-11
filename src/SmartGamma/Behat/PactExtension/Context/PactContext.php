@@ -9,16 +9,14 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
-use PhpPact\Consumer\Model\ConsumerRequest;
-use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
+use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
+use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\PlainTextStateDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
-use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
-use SmartGamma\Behat\PactExtension\Infrastructure\Provider\ProviderRequest;
-use SmartGamma\Behat\PactExtension\Infrastructure\ProviderStateDTO;
 
 class PactContext implements PactContextInterface
 {
@@ -26,11 +24,6 @@ class PactContext implements PactContextInterface
      * @var string
      */
     private static $stepName;
-
-    /**
-     * @var string
-     */
-    private static $scenarioName;
 
     /**
      * @var array
@@ -73,6 +66,11 @@ class PactContext implements PactContextInterface
     private static $pact;
 
     /**
+     * @var ProviderState
+     */
+    private static $providerState;
+
+    /**
      * @param Pact                  $pact
      * @param InteractionCompositor $compositor
      */
@@ -80,6 +78,7 @@ class PactContext implements PactContextInterface
     {
         static::$pact     = $pact;
         $this->compositor = $compositor;
+        static::$providerState = new ProviderState();
     }
 
     /**
@@ -95,7 +94,7 @@ class PactContext implements PactContextInterface
      */
     public static function setupBehatStepName(BeforeScenarioScope $step): void
     {
-        static::$scenarioName = $step->getScenario()->getTitle();
+        static::$providerState->setDefaultPlainTextState($step->getScenario()->getTitle());
     }
 
     /**
@@ -119,7 +118,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
         $response = new InteractionResponseDTO($status);
-        $providerState = $this->getGivenSection($providerName);
+        $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
     }
@@ -138,7 +137,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
-        $providerState = $this->getGivenSection($providerName);
+        $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
     }
@@ -157,7 +156,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
         $response = new InteractionResponseDTO($status);
-        $providerState = $this->getGivenSection($providerName);
+        $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
     }
@@ -177,7 +176,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
-        $providerState = $this->getGivenSection($providerName);
+        $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
     }
@@ -195,7 +194,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $requestBody = $table->getRowsHash();
         array_shift($requestBody);
-        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, null, [], $requestBody);
+        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, null, $requestBody);
 
         return true;
     }
@@ -216,7 +215,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $request  = $this->consumerRequest[$providerName];
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
-        $providerState = $this->getGivenSection($providerName);
+        $providerState = static::$providerState->getStateDescription($providerName);
 
         unset($this->consumerRequest[$providerName]);
 
@@ -256,12 +255,14 @@ class PactContext implements PactContextInterface
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
         $this->sanitizeProviderName($providerName);
-
+/*
         $this->providerEntityName[$providerName]          = $entity;
         $this->providerEntityData[$providerName][$entity] = \array_slice($table->getRowsHash(), 1);
-
+*/
         $parameters = \array_slice($table->getRowsHash(), 1);
 
+        $injectorState = new InjectorStateDTO($providerName, $entity, $parameters);
+        static::$providerState->addInjectorState($injectorState);
         //$state = new ProviderInjectorStateDTO($providerName, $entity, $parameters);
 
        // static::$pact->registerProviderState($state);
@@ -270,13 +271,17 @@ class PactContext implements PactContextInterface
     }
 
     /**
-     * @Given :entity as :description on the provider :providerName:
+     * @Given :entity as :entityDescription on the provider :providerName:
      */
-    public function onTheProviderWithDescription(string $entity, string $providerName, string $description, TableNode $table): void
+    public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): void
     {
         $this->sanitizeProviderName($providerName);
-        $this->onTheProvider($entity, $providerName, $table);
-        $this->providerEntityDescription[$providerName][$entity] = $description ? '(' . $description . ')' : '';
+       // $this->onTheProvider($entity, $providerName, $table);
+        //$this->providerEntityDescription[$providerName][$entity] = $description ? '(' . $description . ')' : '';
+        $parameters = \array_slice($table->getRowsHash(), 1);
+
+        $injectorState = new InjectorStateDTO($providerName, $entity, $parameters, $entityDescription);
+        static::$providerState->addInjectorState($injectorState);
     }
 
     /**
@@ -285,7 +290,9 @@ class PactContext implements PactContextInterface
     public function providerState(string $providerName, PyStringNode $state): void
     {
         $this->sanitizeProviderName($providerName);
-        $this->providerTextState[$providerName] = $state->getRaw();
+        //$this->providerTextState[$providerName] = $state->getRaw();
+        $textStateDTO = new PlainTextStateDTO($providerName, $state->getRaw());
+        static::$providerState->setPlainTextState($textStateDTO);
     }
 
     /**
@@ -333,15 +340,15 @@ class PactContext implements PactContextInterface
     /**
      * @AfterSuite
      */
-    public static function teardown(AfterSuiteScope $scope): void
+    public static function teardown(AfterSuiteScope $scope): bool
     {
         if (!$scope->getTestResult()->isPassed()) {
             echo 'A test has failed. Skipping PACT file upload.';
 
-            return;
+            return false;
         }
 
-        static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
+        return static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
     }
 
     private function sanitizeProviderName(string &$name): void
