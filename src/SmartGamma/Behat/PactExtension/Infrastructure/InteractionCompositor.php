@@ -128,7 +128,7 @@ class InteractionCompositor
             $request->addHeader($key, $value);
         }
 
-        if (\count($requestDTO->getBody() > 0)) {
+        if (\count($requestDTO->getBody()) > 0) {
             $request->setBody($requestDTO->getBody());
         }
 

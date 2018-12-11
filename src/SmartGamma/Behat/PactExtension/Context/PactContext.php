@@ -116,46 +116,35 @@ class PactContext implements PactContextInterface
         int $status
     ): bool
     {
-        var_dump('!!!!');
         $this->sanitizeProviderName($providerName);
-
-        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
         $response = new InteractionResponseDTO($status);
         $providerState = $this->getGivenSection($providerName);
 
-        self::$pact->registerInteraction($request, $response, $providerState);
-
-        return true;
+        return self::$pact->registerInteraction($request, $response, $providerState);
     }
 
     /**
      * @Given :providerName request :method to :uri should return response with :status and body:
-     *
-     * @param string $method
      */
     public function registerInteractionWithBody(
         string $providerName,
         string $method,
         string $uri,
         int $status,
-        TableNode $table
-    ): void
+        TableNode $responseTable
+    ): bool
     {
-        $request  = $this->compositor->createRequest($providerName, $method, $uri);
-        $response = $this->compositor->createResponse($status, $table->getHash());
-
         $this->sanitizeProviderName($providerName);
-        static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection($providerName))
-            ->uponReceiving(static::$stepName)
-            ->with($request)
-            ->willRespondWith($response);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
+        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $providerState = $this->getGivenSection($providerName);
+
+        return self::$pact->registerInteraction($request, $response, $providerState);
     }
 
     /**
      * @Given :providerName request :method to :uri with :query should return response with :status
-     *
-     * @param string $method
      */
     public function registerInteractionWithQuery(
         string $providerName,
@@ -163,23 +152,18 @@ class PactContext implements PactContextInterface
         string $uri,
         string $query,
         int $status
-    ): void
+    ): bool
     {
-        $request  = $this->compositor->createRequest($providerName, $method, $uri, $query);
-        $response = $this->compositor->createResponse($status);
-
         $this->sanitizeProviderName($providerName);
-        static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection($providerName))
-            ->uponReceiving(static::$stepName)
-            ->with($request)
-            ->willRespondWith($response);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
+        $response = new InteractionResponseDTO($status);
+        $providerState = $this->getGivenSection($providerName);
+
+        return self::$pact->registerInteraction($request, $response, $providerState);
     }
 
     /**
      * @Given :providerName request :method to :uri with :query should return response with :status and body:
-     *
-     * @param string $method
      */
     public function registerInteractionWithQueryAndBody(
         string $providerName,
@@ -187,29 +171,31 @@ class PactContext implements PactContextInterface
         string $uri,
         string $query,
         int $status,
-        TableNode $table
-    ): void
+        TableNode $responseTable
+    ): bool
     {
-        $request  = $this->compositor->createRequest($providerName, $method, $uri, $query);
-        $response = $this->compositor->createResponse($status, $table->getHash());
-
         $this->sanitizeProviderName($providerName);
-        static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection($providerName))
-            ->uponReceiving(self::$stepName)
-            ->with($request)
-            ->willRespondWith($response);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
+        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $providerState = $this->getGivenSection($providerName);
+
+        return self::$pact->registerInteraction($request, $response, $providerState);
     }
 
     /**
      * @Given :providerName request :method to :uri with parameters:
      */
-    public function requestToWithParameters(string $providerName, string $method, string $uri, TableNode $table): bool
+    public function requestToWithParameters(
+        string $providerName,
+        string $method,
+        string $uri,
+        TableNode $table
+    ): bool
     {
+        $this->sanitizeProviderName($providerName);
         $requestBody = $table->getRowsHash();
         array_shift($requestBody);
-
-        $this->consumerRequest[$providerName] = $this->compositor->createRequest($providerName, $method, $uri, null, [], $requestBody);
+        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, null, [], $requestBody);
 
         return true;
     }
@@ -217,25 +203,24 @@ class PactContext implements PactContextInterface
     /**
      * @Given request above to :providerName should return response with :status and body:
      */
-    public function theProviderRequestShouldReturnResponseWithAndBody(string $providerName, string $status, TableNode $table): bool
+    public function theProviderRequestShouldReturnResponseWithAndBody(
+        string $providerName,
+        string $status,
+        TableNode $responseTable
+    ): bool
     {
         if (false === isset($this->consumerRequest[$providerName])) {
-            throw new NoConsumerRequestDefined('No consumer Request defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
+            throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
         }
 
-        $request  = $this->consumerRequest[$providerName];
-        $response = $this->compositor->createResponse($status, $table->getHash());
-
         $this->sanitizeProviderName($providerName);
-        static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection($providerName))
-            ->uponReceiving(self::$stepName)
-            ->with($request)
-            ->willRespondWith($response);
+        $request  = $this->consumerRequest[$providerName];
+        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $providerState = $this->getGivenSection($providerName);
 
         unset($this->consumerRequest[$providerName]);
 
-        return true;
+        return self::$pact->registerInteraction($request, $response, $providerState);
     }
 
     /**

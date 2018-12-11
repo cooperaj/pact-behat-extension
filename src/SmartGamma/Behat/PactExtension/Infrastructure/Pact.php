@@ -257,16 +257,6 @@ class Pact
         return true;
     }
 
-    /**
-     * @param string $providerName
-     *
-     * @return InteractionBuilder
-     */
-    public function getBuilder(string $providerName): InteractionBuilder
-    {
-        return $this->builders[$providerName];
-    }
-
     public function registerInteraction(InteractionRequestDTO $requestDTO, InteractionResponseDTO $responseDTO, string $providerState): bool
     {
         $providerName = $requestDTO->getProviderName();
