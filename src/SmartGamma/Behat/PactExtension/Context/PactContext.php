@@ -116,7 +116,6 @@ class PactContext implements PactContextInterface
         int $status
     ): bool
     {
-        $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
         $response = new InteractionResponseDTO($status);
         $providerState = static::$providerState->getStateDescription($providerName);
@@ -135,7 +134,6 @@ class PactContext implements PactContextInterface
         TableNode $responseTable
     ): bool
     {
-        $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
         $providerState = static::$providerState->getStateDescription($providerName);
@@ -154,7 +152,6 @@ class PactContext implements PactContextInterface
         int $status
     ): bool
     {
-        $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], $query);
         $response = new InteractionResponseDTO($status);
         $providerState = static::$providerState->getStateDescription($providerName);
@@ -174,7 +171,6 @@ class PactContext implements PactContextInterface
         TableNode $responseTable
     ): bool
     {
-        $this->sanitizeProviderName($providerName);
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], $query);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
         $providerState = static::$providerState->getStateDescription($providerName);
@@ -192,7 +188,6 @@ class PactContext implements PactContextInterface
         TableNode $table
     ): bool
     {
-        $this->sanitizeProviderName($providerName);
         $requestBody = $table->getRowsHash();
         array_shift($requestBody);
         $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], null, $requestBody);
@@ -213,11 +208,9 @@ class PactContext implements PactContextInterface
             throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
         }
 
-        $this->sanitizeProviderName($providerName);
         $request  = $this->consumerRequest[$providerName];
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
         $providerState = static::$providerState->getStateDescription($providerName);
-
         unset($this->consumerRequest[$providerName]);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
@@ -241,13 +234,9 @@ class PactContext implements PactContextInterface
     /**
      * @Given :providerName API is available
      */
-    public function keeperRegistryIsAvailable(string $providerName): bool
+    public function keeperRegistryIsAvailable(string $providerName): int
     {
-        $this->sanitizeProviderName($providerName);
-
-        static::$pact->startServer($providerName);
-
-        return true;
+        return static::$pact->startServer($providerName);
     }
 
     /**
@@ -255,7 +244,6 @@ class PactContext implements PactContextInterface
      */
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
-        $this->sanitizeProviderName($providerName);
         $parameters = \array_slice($table->getRowsHash(), 1);
 
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters);
@@ -269,7 +257,6 @@ class PactContext implements PactContextInterface
      */
     public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): void
     {
-        $this->sanitizeProviderName($providerName);
         $parameters = \array_slice($table->getRowsHash(), 1);
 
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters, $entityDescription);
@@ -281,7 +268,6 @@ class PactContext implements PactContextInterface
      */
     public function providerState(string $providerName, PyStringNode $state): void
     {
-        $this->sanitizeProviderName($providerName);
         $textStateDTO = new PlainTextStateDTO($providerName, $state->getRaw());
         static::$providerState->setPlainTextState($textStateDTO);
     }
@@ -291,7 +277,6 @@ class PactContext implements PactContextInterface
      */
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
-        $this->sanitizeProviderName($providerName);
         $this->headers[$providerName] = $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials);
     }
 
@@ -317,10 +302,5 @@ class PactContext implements PactContextInterface
         }
 
         return static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
-    }
-
-    private function sanitizeProviderName(string &$name): void
-    {
-        $name = str_replace(' ', '_', $name);
     }
 }
