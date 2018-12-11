@@ -23,16 +23,13 @@ class PactInitializer implements ContextInitializer
     /**
      * PactInitializer constructor.
      *
-     * @param Matcher $matcher
      * @param Pact    $pact
      */
     public function __construct(
-        Pact $pact,
-        InteractionCompositor $compositor
+        Pact $pact
     )
     {
         $this->pact       = $pact;
-        $this->compositor = $compositor;
     }
 
     /**
@@ -55,6 +52,6 @@ class PactInitializer implements ContextInitializer
             return;
         }
 
-        $context->initialize($this->pact, $this->compositor);
+        $context->initialize($this->pact);
     }
 }

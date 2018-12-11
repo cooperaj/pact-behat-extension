@@ -37,72 +37,7 @@ class InteractionCompositor
     }
 
     /**
-     * @param string $authType
-     * @param string $credentials
-     *
-     * @return array
-     *
-     * @throws NoAuthTypeSupported
-     */
-    public function authorizeConsumerRequestToProvider(string $authType, string $credentials): array
-    {
-        switch ($authType) {
-            case 'http':
-                $headers = ['Authorization' => 'Basic ' . base64_encode($credentials)];
-                break;
-            default:
-                throw new NoAuthTypeSupported('No authorization type:' . $authType . ' is supported');
-        }
-
-        return $headers;
-    }
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @param string $query
-     * @param array  $headers
-     * @param null   $body
-     *
-     * @return \PhpPact\Consumer\Model\ConsumerRequest
-     */
-    public function createRequest(
-        string $providerName,
-        string $method,
-        string $path,
-        string $query = null,
-        array $headers = [],
-        $body = null
-    ): ConsumerRequest
-    {
-        $request = new ConsumerRequest();
-
-        $request
-            ->setMethod($method)
-            ->setPath($path);
-
-        if (\count($headers) > 0) {
-            $request->setHeaders($headers);
-        }
-
-        if (null !== $query) {
-            $request->setQuery($query);
-        }
-
-        foreach ($headers as $key => $value) {
-            $request->addHeader($key, $value);
-        }
-
-        if (null !== $body) {
-            $request->setBody($body);
-        }
-
-        return $request;
-    }
-
-    /**
      * @param InteractionRequestDTO $requestDTO
-     * @param array                 $headers
      *
      * @return ConsumerRequest
      */
@@ -134,27 +69,6 @@ class InteractionCompositor
     }
 
     /**
-     * @param int        $status
-     * @param array|null $bodyParameters
-     *
-     * @return \PhpPact\Consumer\Model\ProviderResponse
-     */
-    public function createResponse(int $status, array $rawParameters = []): ProviderResponse
-    {
-        $response = new ProviderResponse();
-        $response
-            ->setStatus($status);
-
-        $bodyParameters = $this->buildResponseBodyWithMatchers($rawParameters);
-
-        if (sizeof($bodyParameters)) {
-            $response->setBody($bodyParameters);
-        }
-
-        return $response;
-    }
-
-    /**
      * @param InteractionResponseDTO $responseDTO
      *
      * @return ProviderResponse
@@ -173,20 +87,9 @@ class InteractionCompositor
 
         return $response;
     }
-/*
-    public function addMatchingStructure(string $objectName, array $structure)
-    {
-        $this->matchingStructure[$objectName] = $structure;
-    }
-*/
+
     /**
-     * Initializes this class with the given options.
-     *
-     * @param array $hash {
-     *     @var string $parameter
-     *     @var string $value
-     *     @var string $match
-     * }
+     * @param InteractionResponseDTO $responseDTO
      *
      * @return array
      */

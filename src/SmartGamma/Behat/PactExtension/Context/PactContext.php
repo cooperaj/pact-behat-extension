@@ -17,7 +17,6 @@ use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\PlainTextStateDT
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 
 class PactContext implements PactContextInterface
 {
@@ -42,9 +41,9 @@ class PactContext implements PactContextInterface
     private $headers = [];
 
     /**
-     * @var InteractionCompositor
+     * @var Authenticator
      */
-    private $compositor;
+    private $authenticator;
 
     /**
      * @var array
@@ -63,13 +62,12 @@ class PactContext implements PactContextInterface
 
     /**
      * @param Pact                  $pact
-     * @param InteractionCompositor $compositor
      */
-    public function initialize(Pact $pact, InteractionCompositor $compositor)
+    public function initialize(Pact $pact)
     {
         static::$pact     = $pact;
-        $this->compositor = $compositor;
         static::$providerState = new ProviderState();
+        $this->authenticator = new Authenticator();
     }
 
     /**
@@ -267,7 +265,7 @@ class PactContext implements PactContextInterface
      */
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
-        $this->headers[$providerName] = $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials);
+        $this->headers[$providerName] = $this->authenticator->authorizeConsumerRequestToProvider($authType, $credentials);
     }
 
     /**
