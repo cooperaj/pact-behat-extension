@@ -32,21 +32,6 @@ class PactContext implements PactContextInterface
     private static $tags = [];
 
     /**
-     * @var string
-     */
-    private $providerEntityName;
-
-    /**
-     * @var array
-     */
-    private $providerEntityData = [];
-
-    /**
-     * @var array
-     */
-    private $providerEntityDescription = [];
-
-    /**
      * @var array
      */
     private $consumerRequest = [];
@@ -60,6 +45,11 @@ class PactContext implements PactContextInterface
      * @var InteractionCompositor
      */
     private $compositor;
+
+    /**
+     * @var array
+     */
+    private $matchingObjectStructures = [];
 
     /**
      * @var Pact
@@ -135,7 +125,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
-        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $response = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
         $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
@@ -172,7 +162,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], $query);
-        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $response = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
         $providerState = static::$providerState->getStateDescription($providerName);
 
         return self::$pact->registerInteraction($request, $response, $providerState);
@@ -209,7 +199,7 @@ class PactContext implements PactContextInterface
         }
 
         $request  = $this->consumerRequest[$providerName];
-        $response = new InteractionResponseDTO($status, $responseTable->getHash());
+        $response = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
         $providerState = static::$providerState->getStateDescription($providerName);
         unset($this->consumerRequest[$providerName]);
 
@@ -228,7 +218,7 @@ class PactContext implements PactContextInterface
         $eachParameters = $table->getRowsHash();
         array_shift($eachParameters);
 
-        $this->compositor->addMatchingStructure($object, $eachParameters);
+        $this->matchingObjectStructures[$object] = $eachParameters;
     }
 
     /**
@@ -245,7 +235,6 @@ class PactContext implements PactContextInterface
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
         $parameters = \array_slice($table->getRowsHash(), 1);
-
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters);
         static::$providerState->addInjectorState($injectorState);
 
@@ -255,12 +244,13 @@ class PactContext implements PactContextInterface
     /**
      * @Given :entity as :entityDescription on the provider :providerName:
      */
-    public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): void
+    public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): bool
     {
         $parameters = \array_slice($table->getRowsHash(), 1);
-
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters, $entityDescription);
         static::$providerState->addInjectorState($injectorState);
+
+        return true;
     }
 
     /**

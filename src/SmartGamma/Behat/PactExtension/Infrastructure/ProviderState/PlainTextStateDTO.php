@@ -2,7 +2,7 @@
 
 namespace SmartGamma\Behat\PactExtension\Infrastructure\ProviderState;
 
-class PlainTextStateDTO implements ProviderStateInterface
+class PlainTextStateDTO
 {
     /**
      * @var string

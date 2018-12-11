@@ -165,7 +165,7 @@ class InteractionCompositor
         $response
             ->setStatus($responseDTO->getStatus());
 
-        $bodyParameters = $this->buildResponseBodyWithMatchers($responseDTO->getRawParameters());
+        $bodyParameters = $this->buildResponseBodyWithMatchers($responseDTO);
 
         if (\count($bodyParameters) > 0) {
             $response->setBody($bodyParameters);
@@ -173,12 +173,12 @@ class InteractionCompositor
 
         return $response;
     }
-
+/*
     public function addMatchingStructure(string $objectName, array $structure)
     {
         $this->matchingStructure[$objectName] = $structure;
     }
-
+*/
     /**
      * Initializes this class with the given options.
      *
@@ -190,14 +190,14 @@ class InteractionCompositor
      *
      * @return array
      */
-    private function buildResponseBodyWithMatchers(array $hash): array
+    private function buildResponseBodyWithMatchers(InteractionResponseDTO $responseDTO): array
     {
         return array_reduce(
-            $hash,
-            function (array $carry, array $bodyItem) {
+            $responseDTO->getRawParameters(),
+            function (array $carry, array $bodyItem) use ($responseDTO){
 
                 $matchType = $bodyItem['match'] ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
-                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $this->matchingStructure[$bodyItem['value']] : $bodyItem['value'];
+                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $responseDTO->getMatchingObjectStructure($bodyItem['value']): $bodyItem['value'];
 
                 if ('null' !== $value ) {
                     $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
