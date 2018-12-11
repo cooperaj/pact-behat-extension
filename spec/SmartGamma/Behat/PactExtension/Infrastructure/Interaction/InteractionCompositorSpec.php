@@ -5,10 +5,10 @@ namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Exception\NoAuthTypeSupported;
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\MatcherInterface;
 
 class InteractionCompositorSpec extends ObjectBehavior
 {
@@ -27,7 +27,7 @@ class InteractionCompositorSpec extends ObjectBehavior
 
     public function it_authorize_consumer_request_to_provider()
     {
-        $this->authorizeConsumerRequestToProvider('http','user:pass', self::PROVIDER_NAME);
+        $this->authorizeConsumerRequestToProvider('http','user:pass');
     }
 
     public function it_throws_exception_for_unsupported_auth_type()

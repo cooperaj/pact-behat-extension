@@ -1,6 +1,6 @@
 <?php
 
-namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
+namespace spec\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
 use PhpSpec\ObjectBehavior;

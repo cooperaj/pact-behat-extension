@@ -6,7 +6,7 @@
  * Time: 16:18
  */
 
-namespace SmartGamma\Behat\PactExtension\Infrastructure;
+namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 
 use PhpPact\Consumer\Model\ConsumerRequest;

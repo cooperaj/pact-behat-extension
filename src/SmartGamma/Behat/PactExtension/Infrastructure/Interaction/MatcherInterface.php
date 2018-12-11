@@ -1,8 +1,6 @@
 <?php
 
-namespace SmartGamma\Behat\PactExtension\Infrastructure;
-
-use PhpPact\Consumer\Matcher\Matcher;
+namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 interface MatcherInterface
 {

@@ -14,10 +14,10 @@ use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\PlainTextStateDTO;
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 
 class PactContext implements PactContextInterface
 {

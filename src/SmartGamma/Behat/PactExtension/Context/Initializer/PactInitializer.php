@@ -5,9 +5,8 @@ namespace SmartGamma\Behat\PactExtension\Context\Initializer;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\Initializer\ContextInitializer;
 use SmartGamma\Behat\PactExtension\Context\PactContextInterface;
-use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 
 class PactInitializer implements ContextInitializer
 {

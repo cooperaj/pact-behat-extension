@@ -3,7 +3,7 @@ services:
     class: PhpPact\Consumer\Matcher\Matcher
 
   behat.matcher:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\BehatMatcher
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\BehatMatcher
     arguments:
       - "@pact.matcher"
 
@@ -14,7 +14,7 @@ services:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory
 
   pact.compositor:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor
     arguments:
       - "@behat.matcher"
       -

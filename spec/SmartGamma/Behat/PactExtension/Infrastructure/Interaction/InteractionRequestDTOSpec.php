@@ -1,15 +1,15 @@
 <?php
 
-namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
+namespace spec\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
-use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class InteractionRequestDTOSpec extends ObjectBehavior
 {
     const PROVIDER_NAME = 'some provider';
-    const STEP_NAME = 'step name';
+    const STEP_NAME     = 'step name';
 
     public function let()
     {

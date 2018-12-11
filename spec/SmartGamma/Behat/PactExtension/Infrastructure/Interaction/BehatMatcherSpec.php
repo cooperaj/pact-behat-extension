@@ -1,8 +1,8 @@
 <?php
 
-namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
+namespace spec\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
-use SmartGamma\Behat\PactExtension\Infrastructure\BehatMatcher;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\BehatMatcher;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use PhpPact\Consumer\Matcher\Matcher;

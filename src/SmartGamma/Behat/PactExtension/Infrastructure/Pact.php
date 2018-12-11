@@ -11,6 +11,9 @@ use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 
 class Pact
 {

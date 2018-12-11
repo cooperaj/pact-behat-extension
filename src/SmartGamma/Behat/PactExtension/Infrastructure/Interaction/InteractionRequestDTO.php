@@ -1,6 +1,6 @@
 <?php
 
-namespace SmartGamma\Behat\PactExtension\Infrastructure;
+namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 class InteractionRequestDTO
 {
