@@ -35,12 +35,18 @@ class InteractionRequestDTO
     private $body;
 
     /**
+     * @var array
+     */
+    private $headers = [];
+
+    /**
      * InteractionRequestDTO constructor.
      *
      * @param string      $providerName
      * @param string      $description
      * @param string      $uri
      * @param string      $method
+     * @param array       $headers
      * @param string|null $query
      * @param array|null  $body
      */
@@ -49,6 +55,7 @@ class InteractionRequestDTO
         string $description,
         string $uri,
         string $method = 'GET',
+        array $headers = [],
         ?string $query = null,
         array $body = []
     )
@@ -59,6 +66,7 @@ class InteractionRequestDTO
         $this->method       = $method;
         $this->query        = $query;
         $this->body         = $body;
+        $this->headers      = $headers;
     }
 
     /**
@@ -107,5 +115,13 @@ class InteractionRequestDTO
     public function getBody(): array
     {
         return $this->body;
+    }
+
+    /**
+     * @return array
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
     }
 }

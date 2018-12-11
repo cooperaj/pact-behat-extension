@@ -9,6 +9,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
+use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
@@ -53,7 +54,7 @@ class PactContext implements PactContextInterface
     /**
      * @var array
      */
-    private $providerTextState = [];
+    private $headers = [];
 
     /**
      * @var InteractionCompositor
@@ -116,7 +117,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $this->sanitizeProviderName($providerName);
-        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
         $response = new InteractionResponseDTO($status);
         $providerState = static::$providerState->getStateDescription($providerName);
 
@@ -135,7 +136,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $this->sanitizeProviderName($providerName);
-        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
         $providerState = static::$providerState->getStateDescription($providerName);
 
@@ -154,7 +155,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $this->sanitizeProviderName($providerName);
-        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], $query);
         $response = new InteractionResponseDTO($status);
         $providerState = static::$providerState->getStateDescription($providerName);
 
@@ -174,7 +175,7 @@ class PactContext implements PactContextInterface
     ): bool
     {
         $this->sanitizeProviderName($providerName);
-        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $query);
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], $query);
         $response = new InteractionResponseDTO($status, $responseTable->getHash());
         $providerState = static::$providerState->getStateDescription($providerName);
 
@@ -194,7 +195,7 @@ class PactContext implements PactContextInterface
         $this->sanitizeProviderName($providerName);
         $requestBody = $table->getRowsHash();
         array_shift($requestBody);
-        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, null, $requestBody);
+        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName], null, $requestBody);
 
         return true;
     }
@@ -228,7 +229,7 @@ class PactContext implements PactContextInterface
     public function hasFollowStructureInTheResponseAbove($object, TableNode $table)
     {
         if(false == preg_match('/^<.*>$/', $object)) {
-            throw new \InvalidResponseObjectNameFormat('Response object name should be taken in "<...>" like <name>');
+            throw new InvalidResponseObjectNameFormat('Response object name should be taken in "<...>" like <name>');
         }
 
         $eachParameters = $table->getRowsHash();
@@ -300,31 +301,8 @@ class PactContext implements PactContextInterface
      */
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
-        $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials, $providerName);
-    }
-
-    private function getGivenSection(string $providerName): string
-    {
-        if (isset($this->providerEntityData[$providerName]) && sizeof($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]])) {
-
-            $given = 'Create '
-                . $this->providerEntityName[$providerName]
-                . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
-                . ':'
-                . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
-
-            return $given;
-        }
-
-        if (isset($this->providerTextState[$providerName])) {
-            $given = $this->providerTextState[$providerName];
-
-            return $given;
-        }
-
-        $given = self::$scenarioName;
-
-        return $given;
+        $this->sanitizeProviderName($providerName);
+        $this->headers[$providerName] = $this->compositor->authorizeConsumerRequestToProvider($authType, $credentials);
     }
 
     /**

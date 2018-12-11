@@ -16,11 +16,6 @@ use SmartGamma\Behat\PactExtension\Exception\NoAuthTypeSupported;
 class InteractionCompositor
 {
     /**
-     * @var array
-     */
-    private $authHeaders = [];
-    
-    /**
      * @var MatcherInterface
      */
     private $matcher;
@@ -44,19 +39,22 @@ class InteractionCompositor
     /**
      * @param string $authType
      * @param string $credentials
-     * @param string $providerName
+     *
+     * @return array
      *
      * @throws NoAuthTypeSupported
      */
-    public function authorizeConsumerRequestToProvider(string $authType, string $credentials, string $providerName): void
+    public function authorizeConsumerRequestToProvider(string $authType, string $credentials): array
     {
         switch ($authType) {
             case 'http':
-                $this->authHeaders[$providerName] = ['Authorization' => 'Basic ' . base64_encode($credentials)];
+                $headers = ['Authorization' => 'Basic ' . base64_encode($credentials)];
                 break;
             default:
                 throw new NoAuthTypeSupported('No authorization type:' . $authType . ' is supported');
         }
+
+        return $headers;
     }
 
     /**
@@ -83,8 +81,8 @@ class InteractionCompositor
             ->setMethod($method)
             ->setPath($path);
 
-        if (isset($this->authHeaders[$providerName])) {
-            $request->setHeaders($this->authHeaders[$providerName]);
+        if (\count($headers) > 0) {
+            $request->setHeaders($headers);
         }
 
         if (null !== $query) {
@@ -108,7 +106,7 @@ class InteractionCompositor
      *
      * @return ConsumerRequest
      */
-    public function createRequestFromDTO(InteractionRequestDTO $requestDTO, array $headers = []): ConsumerRequest
+    public function createRequestFromDTO(InteractionRequestDTO $requestDTO): ConsumerRequest
     {
         $request = new ConsumerRequest();
 
@@ -124,7 +122,7 @@ class InteractionCompositor
             $request->setQuery($requestDTO->getQuery());
         }
 
-        foreach ($headers as $key => $value) {
+        foreach ($requestDTO->getHeaders() as $key => $value) {
             $request->addHeader($key, $value);
         }
 
@@ -209,10 +207,5 @@ class InteractionCompositor
             },
             []
         );
-    }
-
-    public function registerEntityOnProvider(ProviderStateDTO $stateDTO)
-    {
-
     }
 }

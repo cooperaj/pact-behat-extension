@@ -287,11 +287,4 @@ class Pact
             ->with($request)
             ->willRespondWith($response);
     }
-
-    public function registerEntityOnProvider(ProviderStateDTO $stateDTO): bool
-    {
-        $this->interactionCompositor->registerEntityOnProvider($stateDTO);
-
-        return true;
-    }
 }
