@@ -30,6 +30,11 @@ class InteractionCompositor
      */
     private $matchingStructure = [];
 
+    /**
+     * @var array
+     */
+    private $providerEntityCollection;
+
 
     public function __construct(MatcherInterface $matcher)
     {
@@ -98,6 +103,39 @@ class InteractionCompositor
     }
 
     /**
+     * @param InteractionRequestDTO $requestDTO
+     * @param array                 $headers
+     *
+     * @return ConsumerRequest
+     */
+    public function createRequestFromDTO(InteractionRequestDTO $requestDTO, array $headers = []): ConsumerRequest
+    {
+        $request = new ConsumerRequest();
+
+        $request
+            ->setMethod($requestDTO->getMethod())
+            ->setPath($requestDTO->getUri());
+
+        if (isset($this->authHeaders[$requestDTO->getProviderName()])) {
+            $request->setHeaders($this->authHeaders[$requestDTO->getProviderName()]);
+        }
+
+        if (null !== $requestDTO->getQuery()) {
+            $request->setQuery($requestDTO->getQuery());
+        }
+
+        foreach ($headers as $key => $value) {
+            $request->addHeader($key, $value);
+        }
+
+        if (\count($requestDTO->getBody() > 0)) {
+            $request->setBody($requestDTO->getBody());
+        }
+
+        return $request;
+    }
+
+    /**
      * @param int        $status
      * @param array|null $bodyParameters
      *
@@ -112,6 +150,26 @@ class InteractionCompositor
         $bodyParameters = $this->buildResponseBodyWithMatchers($rawParameters);
 
         if (sizeof($bodyParameters)) {
+            $response->setBody($bodyParameters);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param InteractionResponseDTO $responseDTO
+     *
+     * @return ProviderResponse
+     */
+    public function createResponseFromDTO(InteractionResponseDTO $responseDTO): ProviderResponse
+    {
+        $response = new ProviderResponse();
+        $response
+            ->setStatus($responseDTO->getStatus());
+
+        $bodyParameters = $this->buildResponseBodyWithMatchers($responseDTO->getRawParameters());
+
+        if (\count($bodyParameters) > 0) {
             $response->setBody($bodyParameters);
         }
 
@@ -151,5 +209,10 @@ class InteractionCompositor
             },
             []
         );
+    }
+
+    public function registerEntityOnProvider(ProviderStateDTO $stateDTO)
+    {
+
     }
 }

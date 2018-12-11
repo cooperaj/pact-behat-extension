@@ -12,10 +12,13 @@ use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\MatcherInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Provider\ProviderRequest;
+use SmartGamma\Behat\PactExtension\Infrastructure\ProviderStateDTO;
 
 class PactContext implements PactContextInterface
 {
@@ -69,6 +72,10 @@ class PactContext implements PactContextInterface
      */
     private static $pact;
 
+    /**
+     * @param Pact                  $pact
+     * @param InteractionCompositor $compositor
+     */
     public function initialize(Pact $pact, InteractionCompositor $compositor)
     {
         static::$pact     = $pact;
@@ -109,14 +116,14 @@ class PactContext implements PactContextInterface
         int $status
     ): bool
     {
-        $request = $this->compositor->createRequest($providerName, $method, $uri);
-
+        var_dump('!!!!');
         $this->sanitizeProviderName($providerName);
-        static::$pact->getBuilder($providerName)
-            ->given($this->getGivenSection($providerName))
-            ->uponReceiving(static::$stepName)
-            ->with($request)
-            ->willRespondWith($this->compositor->createResponse($status));
+
+        $request = new InteractionRequestDTO($providerName, static::$stepName, $uri);
+        $response = new InteractionResponseDTO($status);
+        $providerState = $this->getGivenSection($providerName);
+
+        self::$pact->registerInteraction($request, $response, $providerState);
 
         return true;
     }
@@ -264,8 +271,15 @@ class PactContext implements PactContextInterface
     public function onTheProvider(string $entity, string $providerName, TableNode $table): bool
     {
         $this->sanitizeProviderName($providerName);
+
         $this->providerEntityName[$providerName]          = $entity;
         $this->providerEntityData[$providerName][$entity] = \array_slice($table->getRowsHash(), 1);
+
+        $parameters = \array_slice($table->getRowsHash(), 1);
+
+        //$state = new ProviderInjectorStateDTO($providerName, $entity, $parameters);
+
+       // static::$pact->registerProviderState($state);
 
         return true;
     }

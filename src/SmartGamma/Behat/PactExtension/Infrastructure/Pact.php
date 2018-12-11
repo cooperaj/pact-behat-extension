@@ -18,14 +18,19 @@ class Pact
     private $mockServerFactory;
 
     /**
-     * @var array
+     * @var InteractionCompositor
      */
-    private $config                 = [];
+    private $interactionCompositor;
 
     /**
      * @var array
      */
-    private $providersConfig        = [];
+    private $config = [];
+
+    /**
+     * @var array
+     */
+    private $providersConfig = [];
 
     /**
      * @var string
@@ -35,12 +40,12 @@ class Pact
     /**
      * @var array
      */
-    private $servers                = [];
+    private $servers = [];
 
     /**
      * @var array
      */
-    private $mockServerConfigs      = [];
+    private $mockServerConfigs = [];
 
     /**
      * @var array
@@ -50,12 +55,12 @@ class Pact
     /**
      * @var array
      */
-    private $startedServers         = [];
+    private $startedServers = [];
 
     /**
      * @var array
      */
-    private $builders               = [];
+    private $builders = [];
 
     /**
      * Pact constructor.
@@ -63,12 +68,13 @@ class Pact
      * @param array $config
      * @param array $providersConfig
      */
-    public function __construct(MockServerFactory $mockServerFactory, array $config, array $providersConfig)
+    public function __construct(MockServerFactory $mockServerFactory, InteractionCompositor $interactionCompositor, array $config, array $providersConfig)
     {
-        $this->mockServerFactory = $mockServerFactory;
-        $this->config          = $config;
-        $this->providersConfig = $providersConfig;
-        $this->tag             = $this->getPactTag();
+        $this->mockServerFactory     = $mockServerFactory;
+        $this->interactionCompositor = $interactionCompositor;
+        $this->config                = $config;
+        $this->providersConfig       = $providersConfig;
+        $this->tag                   = $this->getPactTag();
         $this->registerMockServerConfigs();
         $this->registerMockServerHttpServices();
         $this->registerServers();
@@ -185,7 +191,7 @@ class Pact
         $brokerHttpService = new BrokerHttpClient(new GuzzleClient($clientConfig), new Uri($pactBrokerUri));
         $brokerHttpService->publishJson($json, $consumerVersion);
         $brokerHttpService->tag($config->getConsumer(), $consumerVersion, $this->tag);
-        echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $tag;
+        echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $this->tag;
     }
 
     /**
@@ -232,7 +238,7 @@ class Pact
             return $this->startedServers[$providerName];
         }
 
-        $pid = $this->servers[$providerName]->start();
+        $pid                                 = $this->servers[$providerName]->start();
         $this->startedServers[$providerName] = $pid;
 
         return $pid;
@@ -259,5 +265,26 @@ class Pact
     public function getBuilder(string $providerName): InteractionBuilder
     {
         return $this->builders[$providerName];
+    }
+
+    public function registerInteraction(InteractionRequestDTO $requestDTO, InteractionResponseDTO $responseDTO, string $providerState): bool
+    {
+        $providerName = $requestDTO->getProviderName();
+
+        $request = $this->interactionCompositor->createRequestFromDTO($requestDTO);
+        $response = $this->interactionCompositor->createResponseFromDTO($responseDTO);
+
+        return $this->builders[$providerName]
+            ->given($providerState)
+            ->uponReceiving($requestDTO->getDescription())
+            ->with($request)
+            ->willRespondWith($response);
+    }
+
+    public function registerEntityOnProvider(ProviderStateDTO $stateDTO): bool
+    {
+        $this->interactionCompositor->registerEntityOnProvider($stateDTO);
+
+        return true;
     }
 }

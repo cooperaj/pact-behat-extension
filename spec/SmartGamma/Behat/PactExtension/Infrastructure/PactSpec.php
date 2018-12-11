@@ -2,6 +2,11 @@
 
 namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 
+use PhpPact\Consumer\Model\ConsumerRequest;
+use PhpPact\Consumer\Model\ProviderResponse;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionRequestDTO;
+use SmartGamma\Behat\PactExtension\Infrastructure\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\MockServerFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\MockServerInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
@@ -15,7 +20,13 @@ class PactSpec extends ObjectBehavior
     const MOCK_SERVER_PID = 1000;
     const CONSUMER_VERSION = '1.0.0';
 
-    function let(MockServerFactory $mockServerFactory, MockServerInterface $mockServer)
+    function let(
+        MockServerFactory $mockServerFactory,
+        MockServerInterface $mockServer,
+        InteractionCompositor $interactionCompositor,
+        ConsumerRequest $consumerRequest,
+        ProviderResponse $providerResponse
+    )
     {
         $providerConfig[self::PROVIDER_NAME]['PACT_MOCK_SERVER_HOST'] = 'localhost';
         $providerConfig[self::PROVIDER_NAME]['PACT_MOCK_SERVER_PORT'] = '8090';
@@ -28,7 +39,10 @@ class PactSpec extends ObjectBehavior
         $mockServer->start()->willReturn(self::MOCK_SERVER_PID);
         $mockServerFactory->create(Argument::any())->willReturn($mockServer);
 
-        $this->beConstructedWith($mockServerFactory, $config, $providerConfig);
+        $interactionCompositor->createRequestFromDTO(Argument::type(InteractionRequestDTO::class))->willReturn($consumerRequest);
+        $interactionCompositor->createResponseFromDTO(Argument::type(InteractionResponseDTO::class))->willReturn($providerResponse);
+
+        $this->beConstructedWith($mockServerFactory, $interactionCompositor, $config, $providerConfig);
     }
 
     function it_is_initializable()
@@ -55,5 +69,14 @@ class PactSpec extends ObjectBehavior
     public function it_finalizes_testing()
     {
         $this->finalize(self::CONSUMER_VERSION)->shouldBe(true);
+    }
+
+    public function it_register_interaction()
+    {
+        $requestDTO = new InteractionRequestDTO(self::PROVIDER_NAME,'upon text','/');
+        $responseDTO = new InteractionResponseDTO(200, []);
+        $providerState = 'dummy state';
+
+        $this->registerInteraction($requestDTO, $responseDTO, $providerState)->shouldBe(true);
     }
 }
