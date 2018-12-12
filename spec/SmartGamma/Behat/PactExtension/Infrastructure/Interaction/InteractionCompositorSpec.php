@@ -33,7 +33,6 @@ class InteractionCompositorSpec extends ObjectBehavior
     public function it_throws_exception_for_unsupported_auth_type()
     {
         $this->shouldThrow(new NoAuthTypeSupported('No authorization type:other is supported'))->during('authorizeConsumerRequestToProvider', ['other','user:pass', 'some_provider_name']);
-
     }
 
     public function it_create_consumer_request()

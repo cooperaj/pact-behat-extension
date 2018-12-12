@@ -290,4 +290,12 @@ class Pact
             ->with($request)
             ->willRespondWith($response);
     }
+
+    /**
+     * @return string
+     */
+    public function getConsumerVersion(): string
+    {
+        return $this->config['PACT_CONSUMER_VERSION'];
+    }
 }

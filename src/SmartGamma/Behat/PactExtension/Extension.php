@@ -36,11 +36,27 @@ class Extension implements ExtensionInterface
      */
     public function load(ContainerBuilder $container, array $config)
     {
+        $this->resolveConsumerVersion($config);
         $container->setParameter(self::PARAMETER_NAME_PACT_PROVIDERS, $this->normalizeProvidersConfig($config['providers']));
         $container->setParameter(self::PARAMETER_NAME_PACT_COMMON_CONFIG, $config['common']);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/ServiceContainer/config'));
         $loader->load('services.yml');
+    }
+
+    /**
+     * @param array $config
+     */
+    private function resolveConsumerVersion(array &$config)
+    {
+        try {
+            $reflex = new \ReflectionClassConstant('\App\Kernel', 'PACT_CONSUMER_VERSION');
+            $config['common']['PACT_CONSUMER_VERSION'] = $reflex->getValue();
+        } catch (\ReflectionException $e) {
+            if(false === isset($config['common']['PACT_CONSUMER_VERSION'])) {
+                new \Exception('You should define PACT_CONSUMER_VERSION');
+            }
+        }
     }
 
     /**
