@@ -2,6 +2,8 @@
 
 <img src="https://travis-ci.org/smart-gamma/pact-behat-extension.svg?branch=master" />
 
+[![SymfonyInsight](https://insight.symfony.com/projects/e38bcae8-1b27-472f-bd31-284811f61a61/big.svg)](https://insight.symfony.com/projects/e38bcae8-1b27-472f-bd31-284811f61a61)
+
 The extension allows to use contract test framework pact.io in BDD style with Behat
 
 ## Install
