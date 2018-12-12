@@ -117,4 +117,6 @@ You can define you response accoring to Postel law with matchers as:
  - like - will define type matching
  - empty value - will use exact value
  - boolean - will check bool type
- - dateTimeISO8601 - will match to date format      
+ - dateTimeISO8601 - will match to date format
+ - eachLike - will match against defined structure
+ 
