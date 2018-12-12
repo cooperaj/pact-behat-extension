@@ -24,7 +24,7 @@ class InteractionResponseDTO
      *
      * @param int   $status
      * @param array $rawParameters
-     * @param array $matchingObjectStructure
+     * @param array $matchingObjectStructures
      */
     public function __construct(int $status, array $rawParameters = [], array $matchingObjectStructures = [])
     {

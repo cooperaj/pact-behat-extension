@@ -20,17 +20,6 @@ class InteractionCompositor
      */
     private $matcher;
 
-    /**
-     * @var array
-     */
-    private $matchingStructure = [];
-
-    /**
-     * @var array
-     */
-    private $providerEntityCollection;
-
-
     public function __construct(MatcherInterface $matcher)
     {
         $this->matcher = $matcher;
@@ -48,10 +37,6 @@ class InteractionCompositor
         $request
             ->setMethod($requestDTO->getMethod())
             ->setPath($requestDTO->getUri());
-
-        if (isset($this->authHeaders[$requestDTO->getProviderName()])) {
-            $request->setHeaders($this->authHeaders[$requestDTO->getProviderName()]);
-        }
 
         if (null !== $requestDTO->getQuery()) {
             $request->setQuery($requestDTO->getQuery());

@@ -48,7 +48,7 @@ class InteractionRequestDTO
      * @param string      $method
      * @param array       $headers
      * @param string|null $query
-     * @param array|null  $body
+     * @param array       $body
      */
     public function __construct(
         string $providerName,

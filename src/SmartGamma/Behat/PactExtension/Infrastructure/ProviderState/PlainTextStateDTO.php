@@ -10,9 +10,9 @@ class PlainTextStateDTO
     private $providerName;
 
     /**
-     * @var array
+     * @var string
      */
-    private $description = [];
+    private $description;
 
     /**
      * ProviderState constructor.

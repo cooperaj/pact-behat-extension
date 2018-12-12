@@ -199,7 +199,7 @@ class PactContext implements PactContextInterface
      */
     public function theProviderRequestShouldReturnResponseWithAndBody(
         string $providerName,
-        string $status,
+        int $status,
         TableNode $responseTable
     ): void
     {
