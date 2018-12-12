@@ -64,7 +64,6 @@ class ProviderState implements ProviderStateInterface
 
     /**
      * In order to clear states defined in the multiple scenarios in with context
-     * Should be call in Context initializer
      */
     public function clearStates()
     {

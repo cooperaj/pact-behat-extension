@@ -88,6 +88,6 @@ class PactSpec extends ObjectBehavior
         $responseDTO = new InteractionResponseDTO(200, []);
         $providerState = 'dummy state';
 
-        $this->registerInteraction($requestDTO, $responseDTO, $providerState)->shouldBe(true);
+        $this->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 }

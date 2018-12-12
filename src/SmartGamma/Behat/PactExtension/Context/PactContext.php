@@ -61,13 +61,18 @@ class PactContext implements PactContextInterface
     private $matchingObjectStructures = [];
 
     /**
-     * @param Pact $pact
+     * @param Pact          $pact
+     * @param ProviderState $providerState
+     * @param Authenticator $authenticator
+     *
+     * @return bool
      */
-    public function initialize(Pact $pact, ProviderState $providerState, Authenticator $authenticator)
+    public function initialize(Pact $pact, ProviderState $providerState, Authenticator $authenticator): void
     {
         static::$pact          = $pact;
         static::$providerState = $providerState;
         $this->authenticator   = $authenticator;
+        static::$stepName = __FUNCTION__;
     }
 
     /**
@@ -76,6 +81,7 @@ class PactContext implements PactContextInterface
     public function setupBehatTags(BeforeScenarioScope $scope): void
     {
         static::$tags = $scope->getScenario()->getTags();
+        static::$providerState->clearStates();
     }
 
     /**
@@ -104,11 +110,14 @@ class PactContext implements PactContextInterface
         int $status
     ): bool
     {
-        $request       = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $this->headers[$providerName]);
+        $headers = $this->getHeaders($providerName);
+        $request       = new InteractionRequestDTO($providerName, static::$stepName, $uri, $method, $headers);
         $response      = new InteractionResponseDTO($status);
         $providerState = static::$providerState->getStateDescription($providerName);
 
-        return self::$pact->registerInteraction($request, $response, $providerState);
+        self::$pact->registerInteraction($request, $response, $providerState);
+
+        return true;
     }
 
     /**
@@ -290,5 +299,10 @@ class PactContext implements PactContextInterface
         }
 
         return static::$pact->finalize(Kernel::PACT_CONSUMER_VERSION);
+    }
+
+    private function getHeaders(string $providerName): array
+    {
+        return isset($this->headers[$providerName]) ? $this->headers[$providerName] : [];
     }
 }

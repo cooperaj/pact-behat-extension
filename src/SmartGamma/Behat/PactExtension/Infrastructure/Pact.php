@@ -277,14 +277,14 @@ class Pact
         return true;
     }
 
-    public function registerInteraction(InteractionRequestDTO $requestDTO, InteractionResponseDTO $responseDTO, string $providerState): bool
+    public function registerInteraction(InteractionRequestDTO $requestDTO, InteractionResponseDTO $responseDTO, string $providerState): void
     {
         $providerName = $requestDTO->getProviderName();
 
         $request  = $this->interactionCompositor->createRequestFromDTO($requestDTO);
         $response = $this->interactionCompositor->createResponseFromDTO($responseDTO);
 
-        return $this->builders[$providerName]
+        $this->builders[$providerName]
             ->given($providerState)
             ->uponReceiving($requestDTO->getDescription())
             ->with($request)

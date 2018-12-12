@@ -56,15 +56,18 @@ class PactInitializer implements ContextInitializer
 
     /**
      * @param Context $context
+     *
+     * @return bool
      */
     public function initializeContext(Context $context)
     {
         if (false === $this->supports($context)) {
 
-            return;
+            return false;
         }
 
-        $this->providerState->clearStates();
         $context->initialize($this->pact, $this->providerState, $this->authenticator);
+
+        return true;
     }
 }
