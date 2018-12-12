@@ -4,9 +4,10 @@ namespace SmartGamma\Behat\PactExtension\Context\Initializer;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\Initializer\ContextInitializer;
+use SmartGamma\Behat\PactExtension\Context\Authenticator;
 use SmartGamma\Behat\PactExtension\Context\PactContextInterface;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
 
 class PactInitializer implements ContextInitializer
 {
@@ -16,20 +17,31 @@ class PactInitializer implements ContextInitializer
     private $pact;
 
     /**
-     * @var InteractionCompositor
+     * @var ProviderState
      */
-    private $compositor;
+    private $providerState;
+
+    /**
+     * @var Authenticator
+     */
+    private $authenticator;
 
     /**
      * PactInitializer constructor.
      *
-     * @param Pact    $pact
+     * @param Pact          $pact
+     * @param ProviderState $providerState
+     * @param Authenticator $authenticator
      */
     public function __construct(
-        Pact $pact
+        Pact $pact,
+        ProviderState $providerState,
+        Authenticator $authenticator
     )
     {
-        $this->pact       = $pact;
+        $this->pact          = $pact;
+        $this->providerState = $providerState;
+        $this->authenticator = $authenticator;
     }
 
     /**
@@ -52,6 +64,7 @@ class PactInitializer implements ContextInitializer
             return;
         }
 
-        $context->initialize($this->pact);
+        $this->providerState->clearStates();
+        $context->initialize($this->pact, $this->providerState, $this->authenticator);
     }
 }

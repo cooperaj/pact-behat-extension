@@ -26,29 +26,6 @@ class ProviderState implements ProviderStateInterface
      */
     public function getStateDescription(string $providerName): string
     {
-        /*
-        if (isset($this->providerEntityData[$providerName]) && sizeof($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]])) {
-
-            $given = 'Create '
-                . $this->providerEntityName[$providerName]
-                . $this->providerEntityDescription[$providerName][$this->providerEntityName[$providerName]]
-                . ':'
-                . \json_encode($this->providerEntityData[$providerName][$this->providerEntityName[$providerName]]);
-
-            return $given;
-        }
-
-        if (isset($this->providerTextState[$providerName])) {
-            $given = $this->providerTextState[$providerName];
-
-            return $given;
-        }
-
-        $given = self::$scenarioName;
-
-        return $given;
-        */
-
         if (isset($this->injectors[$providerName])) {
             /** @var InjectorStateDTO $injector */
             $injector = $this->injectors[$providerName][0];
@@ -83,5 +60,16 @@ class ProviderState implements ProviderStateInterface
     public function setPlainTextState(PlainTextStateDTO $textStateDTO)
     {
         $this->plainTextState[$textStateDTO->getProviderName()] = $textStateDTO->getStateDescription();
+    }
+
+    /**
+     * In order to clear states defined in the multiple scenarios in with context
+     * Should be call in Context initializer
+     */
+    public function clearStates()
+    {
+        unset($this->injectors);
+        unset($this->plainTextState);
+        unset($this->defaultPlainTextState);
     }
 }

@@ -27,9 +27,16 @@ services:
       - '%pact.common.config%'
       - '%pact.providers.config%'
 
+  pact.provider.authenticator:
+    class:  SmartGamma\Behat\PactExtension\Context\Authenticator
+
+  pact.provider.state:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState
+
   pact.context.initializer:
     class: SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer
     arguments:
-      - "@pact.infrastructure"
-      - "@pact.compositor"
+      - '@pact.infrastructure'
+      - '@pact.provider.state'
+      - '@pact.provider.authenticator'
     tags: [{ name: context.initializer }]

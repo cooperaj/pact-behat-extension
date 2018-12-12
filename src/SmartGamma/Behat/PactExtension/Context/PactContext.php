@@ -63,11 +63,11 @@ class PactContext implements PactContextInterface
     /**
      * @param Pact $pact
      */
-    public function initialize(Pact $pact)
+    public function initialize(Pact $pact, ProviderState $providerState, Authenticator $authenticator)
     {
         static::$pact          = $pact;
-        static::$providerState = new ProviderState();
-        $this->authenticator   = new Authenticator();
+        static::$providerState = $providerState;
+        $this->authenticator   = $authenticator;
     }
 
     /**
