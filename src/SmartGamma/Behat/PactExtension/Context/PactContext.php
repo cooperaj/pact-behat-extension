@@ -64,8 +64,6 @@ class PactContext implements PactContextInterface
      * @param Pact          $pact
      * @param ProviderState $providerState
      * @param Authenticator $authenticator
-     *
-     * @return bool
      */
     public function initialize(Pact $pact, ProviderState $providerState, Authenticator $authenticator): void
     {

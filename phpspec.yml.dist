@@ -5,3 +5,4 @@ extensions:
     output:
       clover: build/clover.xml
       html: build/coverage
+
