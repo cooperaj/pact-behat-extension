@@ -1,5 +1,7 @@
 # Smart Gamma Behat Pact Extension
 
+<img src="https://travis-ci.org/smart-gamma/pact-behat-extension.svg?branch=master" />
+
 The extension allows to use contract test framework pact.io in BDD style with Behat
 
 ## Install
