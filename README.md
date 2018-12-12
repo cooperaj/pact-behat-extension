@@ -36,6 +36,17 @@ Add to behat.yml / behat.yml.dist
 
 > Remove  PACT_BROKER_HTTP_AUTH_USER, PACT_BROKER_HTTP_AUTH_PASS if your pact broker is not http auth  protected
 
+### Consumer version
+
+You should define you consumer version as:
+
+    common:
+        PACT_CONSUMER_VERSION: 1.0.0
+
+But if you are using Symfony framework you can skip this and define the version at Kernel const 
+
+    App\Kernel::PACT_CONSUMER_VERSION
+    
 ## Usage
 
 - March Scenario with @pact tag
