@@ -33,6 +33,7 @@
   "require-dev": {
     "phpspec/phpspec": "^5.1",
     "memio/spec-gen": "^0.9.0",
-    "leanphp/phpspec-code-coverage": "dev-patch-1"
+    "leanphp/phpspec-code-coverage": "dev-patch-1",
+    "phpstan/phpstan": "^0.10.6"
   }
 }
