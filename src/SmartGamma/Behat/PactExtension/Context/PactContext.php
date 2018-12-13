@@ -218,7 +218,7 @@ class PactContext implements PactContextInterface
      */
     public function hasFollowStructureInTheResponseAbove($object, TableNode $table): bool
     {
-        if (false === preg_match('/^<.*>$/', $object)) {
+        if (!preg_match('/^<.*>$/', $object)) {
             throw new InvalidResponseObjectNameFormat('Response object name should be taken in "<...>" like <name>');
         }
 
