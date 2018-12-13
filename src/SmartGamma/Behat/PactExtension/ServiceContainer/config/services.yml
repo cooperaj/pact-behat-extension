@@ -5,7 +5,7 @@ services:
   behat.matcher:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\BehatMatcher
     arguments:
-      - "@pact.matcher"
+      - '@pact.matcher'
 
   pact.mock_server.factory:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory
@@ -13,16 +13,25 @@ services:
   pact.interaction_builder.factory:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory
 
+  pact.http.client:
+    class: PhpPact\Http\GuzzleClient
+
+  pact.mock_server_http_service.factory:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory
+    arguments:
+      - '@pact.http.client'
+
   pact.compositor:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor
     arguments:
-      - "@behat.matcher"
+      - '@behat.matcher'
       -
   pact.infrastructure:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
     arguments:
       - '@pact.mock_server.factory'
       - '@pact.interaction_builder.factory'
+      - '@pact.mock_server_http_service.factory'
       - '@pact.compositor'
       - '%pact.common.config%'
       - '%pact.providers.config%'

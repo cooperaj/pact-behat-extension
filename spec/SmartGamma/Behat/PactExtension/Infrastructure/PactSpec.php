@@ -5,7 +5,9 @@ namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 use PhpPact\Consumer\InteractionBuilder;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
+use PhpPact\Standalone\MockService\Service\MockServerHttpService;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
@@ -26,6 +28,8 @@ class PactSpec extends ObjectBehavior
         MockServerFactory $mockServerFactory,
         MockServerInterface $mockServer,
         InteractionBuilderFactory $interactionBuilderFactory,
+        MockServerHttpServiceFactory $mockServerHttpServiceFactory,
+        MockServerHttpService $mockServerHttpService,
         InteractionBuilder $interactionBuilder,
         InteractionCompositor $interactionCompositor,
         ConsumerRequest $consumerRequest,
@@ -38,6 +42,9 @@ class PactSpec extends ObjectBehavior
         $config['PACT_CONSUMER_NAME'] = self::CONSUMER_NAME;
         $config['PACT_OUTPUT_DIR'] = '/';
         $config['PACT_CORS'] = 'false';
+        $config['PACT_BROKER_URI'] = 'http://pact.domain.com';
+        $config['PACT_CONSUMER_VERSION'] = '1.0.1';
+
         $config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT'] = 10;
 
         $mockServer->start()->willReturn(self::MOCK_SERVER_PID);
@@ -50,10 +57,14 @@ class PactSpec extends ObjectBehavior
 
         $interactionBuilderFactory->create(Argument::any())->willReturn($interactionBuilder);
 
+        $mockServerHttpService->verifyInteractions()->willReturn(true);
+        $mockServerHttpService->getPactJson()->willReturn('{"consumer": [ "name": "some_consumer"], "provider": ["name": "some_provider"] }');
+        $mockServerHttpServiceFactory->create(Argument::any())->willReturn($mockServerHttpService);
+
         $interactionCompositor->createRequestFromDTO(Argument::type(InteractionRequestDTO::class))->willReturn($consumerRequest);
         $interactionCompositor->createResponseFromDTO(Argument::type(InteractionResponseDTO::class))->willReturn($providerResponse);
 
-        $this->beConstructedWith($mockServerFactory, $interactionBuilderFactory, $interactionCompositor, $config, $providerConfig);
+        $this->beConstructedWith($mockServerFactory, $interactionBuilderFactory, $mockServerHttpServiceFactory, $interactionCompositor, $config, $providerConfig);
     }
 
     function it_is_initializable()
@@ -79,6 +90,13 @@ class PactSpec extends ObjectBehavior
 
     public function it_finalizes_testing()
     {
+        $this->startServer(self::PROVIDER_NAME);
+        $this->finalize(self::CONSUMER_VERSION)->shouldBe(true);
+    }
+
+    public function it_finalizes_testing_and_skip_broker_upload_if_no_api_servers_was_started(MockServerHttpService $service)
+    {
+        $service->getPactJson()->shouldNotBeCalled();
         $this->finalize(self::CONSUMER_VERSION)->shouldBe(true);
     }
 
@@ -89,5 +107,10 @@ class PactSpec extends ObjectBehavior
         $providerState = 'dummy state';
 
         $this->registerInteraction($requestDTO, $responseDTO, $providerState);
+    }
+
+    public function it_returns_consumer_version()
+    {
+        $this->getConsumerVersion()->shouldBeString();
     }
 }

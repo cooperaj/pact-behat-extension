@@ -2,6 +2,7 @@
 
 namespace SmartGamma\Behat\PactExtension\Infrastructure;
 
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Uri;
 use PhpPact\Broker\Service\BrokerHttpClient;
 use PhpPact\Consumer\InteractionBuilder;
@@ -11,6 +12,7 @@ use PhpPact\Standalone\MockService\MockServerEnvConfig;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
@@ -26,6 +28,12 @@ class Pact
      * @var InteractionBuilderFactory
      */
     private $interactionBuilderFactory;
+
+    /**
+     * @var
+     */
+    private $mockServerHttpServiceFactory;
+
 
     /**
      * @var InteractionCompositor
@@ -58,7 +66,7 @@ class Pact
     private $mockServerConfigs = [];
 
     /**
-     * @var array
+     * @var MockServerHttpService[]
      */
     private $mockServerHttpServices = [];
 
@@ -84,17 +92,19 @@ class Pact
     public function __construct(
         MockServerFactory $mockServerFactory,
         InteractionBuilderFactory $interactionBuilderFactory,
+        MockServerHttpServiceFactory $mockServerHttpServiceFactory,
         InteractionCompositor $interactionCompositor,
         array $config,
         array $providersConfig
     )
     {
-        $this->mockServerFactory         = $mockServerFactory;
-        $this->interactionBuilderFactory = $interactionBuilderFactory;
-        $this->interactionCompositor     = $interactionCompositor;
-        $this->config                    = $config;
-        $this->providersConfig           = $providersConfig;
-        $this->tag                       = $this->getPactTag();
+        $this->mockServerFactory            = $mockServerFactory;
+        $this->interactionBuilderFactory    = $interactionBuilderFactory;
+        $this->mockServerHttpServiceFactory = $mockServerHttpServiceFactory;
+        $this->interactionCompositor        = $interactionCompositor;
+        $this->config                       = $config;
+        $this->providersConfig              = $providersConfig;
+        $this->tag                          = $this->getPactTag();
         $this->registerMockServerConfigs();
         $this->registerMockServerHttpServices();
         $this->registerServers();
@@ -112,7 +122,7 @@ class Pact
     private function registerMockServerHttpServices(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->mockServerHttpServices[$providerName] = new MockServerHttpService(new GuzzleClient(), $mockServerConfig);
+            $this->mockServerHttpServices[$providerName] = $this->mockServerHttpServiceFactory->create($mockServerConfig);
         }
     }
 
@@ -209,9 +219,13 @@ class Pact
 
         $pactBrokerUri     = $this->config['PACT_BROKER_URI'];
         $brokerHttpService = new BrokerHttpClient(new GuzzleClient($clientConfig), new Uri($pactBrokerUri));
-        $brokerHttpService->publishJson($json, $consumerVersion);
-        $brokerHttpService->tag($config->getConsumer(), $consumerVersion, $this->tag);
-        echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $this->tag;
+        try {
+            $brokerHttpService->publishJson($json, $consumerVersion);
+            $brokerHttpService->tag($config->getConsumer(), $consumerVersion, $this->tag);
+            echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $this->tag;
+        } catch (ClientException $e) {
+            echo 'Error: '.$e->getMessage();
+        }
     }
 
     /**
