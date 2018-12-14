@@ -19,20 +19,6 @@ build:
                       coverage:
                           file: build/clover.xml
                           format: clover
-
-#build:
-#    nodes:
-#        analysis:
-#            project_setup:
-#                override:
-#                    - 'true'
-#            tests:
-#                override:
-#                    - php-scrutinizer-run
-#                    -
-#                        command: phpcs-run
-#                        use_website_config: true
-#        tests: true
 filter:
     excluded_paths:
         - 'spec/*'

@@ -1,8 +1,7 @@
 # Smart Gamma Behat Pact Extension
 
-<img src="https://travis-ci.org/smart-gamma/pact-behat-extension.svg?branch=master" />
 
-[![SymfonyInsight](https://insight.symfony.com/projects/e38bcae8-1b27-472f-bd31-284811f61a61/big.svg)](https://insight.symfony.com/projects/e38bcae8-1b27-472f-bd31-284811f61a61)
+[![Build Status](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/build.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/build-status/master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) 
 
 The extension allows to use contract test framework pact.io in BDD style with Behat
 
