@@ -4,11 +4,6 @@ php:
 - 7.2
 before_script:
 - travis_retry composer install --prefer-source --no-interaction --dev
-- wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar
-- wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar.asc
-- gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
-- gpg --with-fingerprint --verify infection.phar.asc infection.phar
-- chmod +x infection.phar
 script:
 - vendor/bin/phpspec run --config=phpspec.yml.dist --no-interaction
 - "./infection.phar --threads=4 --min-msi=65 --only-covered --log-verbosity=2 --test-framework=phpspec"
