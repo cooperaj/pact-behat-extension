@@ -8,7 +8,8 @@ build:
         coverage:
             tests:
                 override:
-                    - command: phpdbg -qrr ./vendor/bin/phpspec run
+                    #- command: phpdbg -qrr ./vendor/bin/phpspec run
+                    - command: ./vendor/bin/phpspec run
                       coverage:
                           file: build/clover.xml
                           format: clover
