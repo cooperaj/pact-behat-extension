@@ -1,6 +1,9 @@
 build:
     nodes:
         coverage:
+            dependencies:
+                before:
+                    - sudo apt-get install -y php-phpdbg
             tests:
                 override:
                     - command: make test-coverage
