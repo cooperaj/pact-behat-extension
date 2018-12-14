@@ -2,3 +2,5 @@
 vendor/
 build/
 !build/.gitkeep
+infection.phar
+infection.phar.asc
