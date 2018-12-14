@@ -1,11 +1,17 @@
 language: php
-
 php:
-  - 7.1
-  - 7.2
-
+- 7.1
+- 7.2
 before_script:
-  - travis_retry composer install --prefer-source --no-interaction --dev
-
+- travis_retry composer install --prefer-source --no-interaction --dev
+- wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar
+- wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar.asc
+- gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 493B4AA0
+- gpg --with-fingerprint --verify infection.phar.asc infection.phar
+- chmod +x infection.phar
 script:
-  - vendor/bin/phpspec run --config=phpspec.yml.dist --no-interaction
+- vendor/bin/phpspec run --config=phpspec.yml.dist --no-interaction
+- "./infection.phar --threads=4 --min-msi=65 --only-covered --log-verbosity=2 --test-framework=phpspec"
+env:
+  global:
+    secure: DRXVmIIR7WYmNgYOMHkPTOzcLo7T6MLEoP9STa63f5TTJGUQGIv82TzVi/RBK8K4+hZaqylmUKl3hYvgbR5xD9gad5C6oB2HTZyb0cv6xgLRjp6wUoxGu4dLN4T1YRaEw0u+8g/e9xyOpEiyyEEu/7G1CUrIB+/c19NOHGLYPQYsypm9/E+zacf5kZX7Al+tO6O482N5N2CERCerJYOrXpf7IswNzWaAtvFInncRiDpImcmc/T/wHSoqRB+U1QDoBv/H/hab0g7R8lyNhnN2VHrnOH86fhUJDIlC0EFUOKci/KKm7P0/BJWAWfCqETsBbhLueHt/myjjge6dYBkKPRp6+kDpjvKlGDNR5l0huWn0/tclqilaDjlPACNb3ynl1QbOjpJp27LMKTaugvZUsHuJfaJGReiJZU6zA70pmy2hRNE6mwOp5gN/ATouwlD2FNyoPxSuV+6EPizdMRAJ5iwR21sSrQU3/Mxyg0absVu7PrHAYLl/mVK5Gtr+nww9cIHXTm53MDrhjYjqxbvz3Q5HaCOgUsxXucqSOMfX8BmFB96SMb+7VJeIZSpeuEHYtGxmwuFWwFiLvV/I5oTJCChUxkmqKrGi86/XfYSET6wZ67zs99HjidHAenG/D9057ETbrK8/xLDASnQPs6MuO+bsYHsoI7ReEQJQJ91GWzU=
