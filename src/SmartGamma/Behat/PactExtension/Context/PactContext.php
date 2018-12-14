@@ -68,7 +68,7 @@ class PactContext implements PactContextInterface
     {
         self::$pact          = $pact;
         self::$providerState = $providerState;
-        $this->authenticator   = $authenticator;
+        $this->authenticator = $authenticator;
         self::$stepName = __FUNCTION__;
     }
 
