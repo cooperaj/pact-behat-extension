@@ -224,7 +224,7 @@ class Pact
             $brokerHttpService->tag($config->getConsumer(), $consumerVersion, $this->tag);
             echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:' . $this->tag;
         } catch (ClientException $e) {
-            echo 'Error: '.$e->getMessage();
+            echo 'Error: ' . $e->getMessage();
         }
     }
 
