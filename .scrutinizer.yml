@@ -15,5 +15,4 @@ build:
                     - 'true'
             tests:
                 override:
-                    - phpdbg -qrr vendor/bin/phpspec run
-
+                    - command: phpdbg -qrr vendor/bin/phpspec run
