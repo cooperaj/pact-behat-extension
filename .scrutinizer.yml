@@ -4,12 +4,12 @@ build:
     #dependencies:
     #    before:
     #        - sudo apt-get install -y php-phpdbg
-    nodes:
-        coverage:
-            tests:
-                override:
-                    #- command: phpdbg -qrr ./vendor/bin/phpspec run
-                    - command: ./vendor/bin/phpspec run
-                      coverage:
-                          file: build/clover.xml
-                          format: clover
+    #nodes:
+    #    coverage:
+    #        tests:
+    #            override:
+    #                #- command: phpdbg -qrr ./vendor/bin/phpspec run
+    #                - command: ./vendor/bin/phpspec run
+    #                  coverage:
+    #                      file: build/clover.xml
+    #                      format: clover
