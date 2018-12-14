@@ -56,7 +56,7 @@ class BehatMatcher implements MatcherInterface
      */
     public function boolean(string $value)
     {
-        return $this->pactMatcher->boolean($value);
+        return $this->pactMatcher->boolean();
     }
 
     /**
@@ -65,9 +65,9 @@ class BehatMatcher implements MatcherInterface
      * @return array
      * @throws \Exception
      */
-    public function integer(string$value)
+    public function integer(string $value)
     {
-        return $this->pactMatcher->integer($value);
+        return $this->pactMatcher->integer((int)$value);
     }
 
     /**
