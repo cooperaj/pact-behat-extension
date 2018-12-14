@@ -8,7 +8,7 @@ build:
                     - 'true'
             tests:
                 override:
-                    - php ./vendor/bin/phpunit --configuration phpunit.xml --testsuite scrutinizer
+                    - phpdbg -qrr vendor/bin/phpspec run
 
 #        coverage:
 #            tests:
