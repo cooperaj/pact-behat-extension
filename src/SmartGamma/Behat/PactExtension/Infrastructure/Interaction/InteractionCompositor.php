@@ -82,12 +82,12 @@ class InteractionCompositor
     {
         return array_reduce(
             $responseDTO->getRawParameters(),
-            function (array $carry, array $bodyItem) use ($responseDTO){
+            function(array $carry, array $bodyItem) use ($responseDTO){
 
                 $matchType = $bodyItem['match'] ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
-                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $responseDTO->getMatchingObjectStructure($bodyItem['value']): $bodyItem['value'];
+                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $responseDTO->getMatchingObjectStructure($bodyItem['value']) : $bodyItem['value'];
 
-                if ('null' !== $value ) {
+                if ('null' !== $value) {
                     $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
                 }
 

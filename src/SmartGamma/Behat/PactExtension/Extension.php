@@ -53,7 +53,7 @@ class Extension implements ExtensionInterface
             $reflex = new \ReflectionClassConstant('\App\Kernel', 'PACT_CONSUMER_VERSION');
             $config['common']['PACT_CONSUMER_VERSION'] = $reflex->getValue();
         } catch (\ReflectionException $e) {
-            if(false === isset($config['common']['PACT_CONSUMER_VERSION'])) {
+            if (false === isset($config['common']['PACT_CONSUMER_VERSION'])) {
                 new \Exception('You should define PACT_CONSUMER_VERSION');
             }
         }
