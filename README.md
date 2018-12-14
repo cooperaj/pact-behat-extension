@@ -1,7 +1,8 @@
 # Smart Gamma Behat Pact Extension
 
 
-[![Build Status](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/build.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/build-status/master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) 
+[![Build Status](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/build.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/build-status/master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/smart-gamma/pact-behat-extension/?branch=master) [![Mutation Status](https://badge.stryker-mutator.io/github.com/smart-gamma/pact-behat-extension/master)](https://infection.github.io/guide/)
+
 
 The extension allows to use contract test framework pact.io in BDD style with Behat
 
