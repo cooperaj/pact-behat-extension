@@ -1,9 +1,9 @@
 build:
     environment:
         php: 7.2
-    dependencies:
-        before:
-            - sudo apt-get install -y php-phpdbg
+    #dependencies:
+    #    before:
+    #        - sudo apt-get install -y php-phpdbg
     nodes:
         coverage:
             tests:

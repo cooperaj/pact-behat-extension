@@ -2,7 +2,6 @@
 
 namespace SmartGamma\Behat\PactExtension\Context;
 
-use App\Kernel;
 use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
