@@ -245,10 +245,14 @@ class Pact
      */
     private function getCurrentGitBranch(): string
     {
-        $output = exec('git symbolic-ref HEAD');
-        $parts  = explode('/', $output);
+        $branch = 'none';
+        if (is_dir(__DIR__ . '/.git')) {
+            $output = exec('git symbolic-ref HEAD');
+            $parts  = explode('/', $output);
+            $branch = end($parts);
+        }
 
-        return end($parts);
+        return $branch;
     }
 
     /**

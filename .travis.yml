@@ -3,7 +3,6 @@ php:
 - 7.1
 - 7.2
 before_script:
-- sudo apt-get install -y git
 - travis_retry composer install --prefer-source --no-interaction --dev
 - wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar
 - wget https://github.com/infection/infection/releases/download/0.11.0/infection.phar.asc
