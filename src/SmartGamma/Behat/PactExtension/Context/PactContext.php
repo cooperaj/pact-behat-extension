@@ -86,7 +86,7 @@ class PactContext implements PactContextInterface
      */
     public static function setupBehatStepName(ScenarioScope $step): void
     {
-        if($step->getScenario()->getTitle()) {
+        if ($step->getScenario()->getTitle()) {
             self::$providerState->setDefaultPlainTextState($step->getScenario()->getTitle());
         }
     }
