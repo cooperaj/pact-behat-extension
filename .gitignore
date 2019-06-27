@@ -1,5 +1,9 @@
 .idea/
-vendor/
+
 build/
 !build/.gitkeep
+
+vendor/
 infection.phar.asc
+
+composer.lock
