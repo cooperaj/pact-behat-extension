@@ -287,7 +287,7 @@ class Pact
      */
     public function verifyInteractions(): bool
     {
-        foreach ($this->startedServers as $providerName => $val) {
+        foreach ($this->mockServerHttpServices as $providerName => $val) {
             $this->builders[$providerName]->verify();
             $this->mockServerHttpServices[$providerName]->deleteAllInteractions();
         }
