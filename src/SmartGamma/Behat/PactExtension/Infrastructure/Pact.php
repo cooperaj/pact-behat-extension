@@ -167,10 +167,10 @@ class Pact
      *
      * @return bool
      */
-    public function finalize(string $consumerVersion): bool
+    public function finalize(string $consumerVersion, bool $externalMockservice = false): bool
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            if (!isset($this->startedServers[$providerName])) {
+            if (!$externalMockservice && !isset($this->startedServers[$providerName])) {
                 echo 'Ignoring ' . $providerName . ' as it was not started in the suite';
                 continue;
             }
