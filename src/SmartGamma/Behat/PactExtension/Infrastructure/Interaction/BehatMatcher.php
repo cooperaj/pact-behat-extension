@@ -24,7 +24,7 @@ class BehatMatcher implements MatcherInterface
      */
     public function like($value)
     {
-        return $this->pactMatcher->like($this->normolizeValue($value));
+        return $this->pactMatcher->like($this->normaliseValue($value));
     }
 
     /**
@@ -34,7 +34,7 @@ class BehatMatcher implements MatcherInterface
      */
     public function exact($value)
     {
-        return $this->normolizeValue($value);
+        return $value;
     }
 
     /**
@@ -96,7 +96,7 @@ class BehatMatcher implements MatcherInterface
      *
      * @return bool | float | int | null | string
      */
-    private function normolizeValue(string $string)
+    private function normaliseValue(string $string)
     {
         if (empty($string)) {
             return '';
