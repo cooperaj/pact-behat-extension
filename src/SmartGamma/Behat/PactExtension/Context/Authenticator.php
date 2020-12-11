@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Context;
 
 use SmartGamma\Behat\PactExtension\Exception\NoAuthTypeSupported;
