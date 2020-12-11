@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace spec\SmartGamma\Behat\PactExtension\Context;
 
 use Behat\Gherkin\Node\PyStringNode;
