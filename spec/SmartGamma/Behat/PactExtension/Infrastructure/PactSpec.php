@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace spec\SmartGamma\Behat\PactExtension\Infrastructure;
 
+use PhpPact\Broker\Service\BrokerHttpClient;
 use PhpPact\Consumer\InteractionBuilder;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
 use PhpPact\Standalone\MockService\Service\MockServerHttpService;
+use SmartGamma\Behat\PactExtension\Infrastructure\Factory\BrokerHttpClientFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
@@ -32,20 +36,23 @@ class PactSpec extends ObjectBehavior
         MockServerHttpService $mockServerHttpService,
         InteractionBuilder $interactionBuilder,
         InteractionCompositor $interactionCompositor,
+        BrokerHttpClientFactory $brokerHttpClientFactory,
+        BrokerHttpClient $brokerHttpClient,
         ConsumerRequest $consumerRequest,
         ProviderResponse $providerResponse
     )
     {
         $providerConfig[self::PROVIDER_NAME]['PACT_MOCK_SERVER_HOST'] = 'localhost';
-        $providerConfig[self::PROVIDER_NAME]['PACT_MOCK_SERVER_PORT'] = '8090';
+        $providerConfig[self::PROVIDER_NAME]['PACT_MOCK_SERVER_PORT'] = 8090;
         $providerConfig[self::PROVIDER_NAME]['PACT_PROVIDER_NAME'] = self::PROVIDER_NAME;
         $config['PACT_CONSUMER_NAME'] = self::CONSUMER_NAME;
         $config['PACT_OUTPUT_DIR'] = '/';
         $config['PACT_CORS'] = 'false';
         $config['PACT_BROKER_URI'] = 'http://pact.domain.com';
         $config['PACT_CONSUMER_VERSION'] = '1.0.1';
-
         $config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT'] = 10;
+
+        $pactJson = '{"consumer": { "name": "some_consumer" }, "provider": { "name": "some_provider"} }';
 
         $mockServer->start()->willReturn(self::MOCK_SERVER_PID);
         $mockServerFactory->create(Argument::any())->willReturn($mockServer);
@@ -54,17 +61,34 @@ class PactSpec extends ObjectBehavior
         $interactionBuilder->uponReceiving(Argument::any())->willReturn($interactionBuilder);
         $interactionBuilder->with(Argument::any())->willReturn($interactionBuilder);
         $interactionBuilder->willRespondWith(Argument::any())->willReturn(true);
+        $interactionBuilder->verify()->willReturn(true);
 
         $interactionBuilderFactory->create(Argument::any())->willReturn($interactionBuilder);
 
         $mockServerHttpService->verifyInteractions()->willReturn(true);
-        $mockServerHttpService->getPactJson()->willReturn('{"consumer": [ "name": "some_consumer"], "provider": ["name": "some_provider"] }');
+        $mockServerHttpService->deleteAllInteractions()->willReturn(true);
+        $mockServerHttpService->getPactJson()->willReturn($pactJson);
         $mockServerHttpServiceFactory->create(Argument::any())->willReturn($mockServerHttpService);
 
-        $interactionCompositor->createRequestFromDTO(Argument::type(InteractionRequestDTO::class))->willReturn($consumerRequest);
-        $interactionCompositor->createResponseFromDTO(Argument::type(InteractionResponseDTO::class))->willReturn($providerResponse);
+        $interactionCompositor->createRequestFromDTO(Argument::type(InteractionRequestDTO::class))
+            ->willReturn($consumerRequest);
+        $interactionCompositor->createResponseFromDTO(Argument::type(InteractionResponseDTO::class))
+            ->willReturn($providerResponse);
 
-        $this->beConstructedWith($mockServerFactory, $interactionBuilderFactory, $mockServerHttpServiceFactory, $interactionCompositor, $config, $providerConfig);
+        $brokerHttpClient->publishJson($pactJson, $config['PACT_CONSUMER_VERSION']);
+        $brokerHttpClient
+            ->tag(Argument::type('string'), Argument::type('string'), Argument::type('string'));
+        $brokerHttpClientFactory->create()->willReturn($brokerHttpClient);
+
+        $this->beConstructedWith(
+            $mockServerFactory,
+            $interactionBuilderFactory,
+            $mockServerHttpServiceFactory,
+            $interactionCompositor,
+            $brokerHttpClientFactory,
+            $config,
+            $providerConfig
+        );
     }
 
     function it_is_initializable()
