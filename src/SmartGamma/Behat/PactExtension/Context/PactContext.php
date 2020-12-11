@@ -18,6 +18,8 @@ use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequest
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 
+use stdClass;
+
 use function array_slice;
 use function in_array;
 
@@ -98,20 +100,30 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given :providerName request :method to :uri should return response with :status and body:
+     *
+     * @param string $providerName
+     * @param string $method
+     * @param string $uri
+     * @param int $status
+     * @param TableNode|stdClass $response
      */
     public function registerInteractionWithBody(
         string $providerName,
         string $method,
         string $uri,
         int $status,
-        TableNode $responseTable
+        $response
     ): void {
+        if ($response instanceof TableNode) {
+            $response = $response->getHash();
+        }
+
         $headers       = $this->getHeaders($providerName);
-        $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers);
-        $response      = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
+        $requestDTO    = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers);
+        $responseDTO   = new InteractionResponseDTO($status, $response, $this->matchingObjectStructures);
         $providerState = self::$providerState->getStateDescription($providerName);
 
-        self::$pact->registerInteraction($request, $response, $providerState);
+        self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
     /**
@@ -134,6 +146,13 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given :providerName request :method to :uri with :query should return response with :status and body:
+     *
+     * @param string $providerName
+     * @param string $method
+     * @param string $uri
+     * @param string $query
+     * @param int $status
+     * @param TableNode|stdClass $response
      */
     public function registerInteractionWithQueryAndBody(
         string $providerName,
@@ -141,14 +160,18 @@ class PactContext implements PactContextInterface
         string $uri,
         string $query,
         int $status,
-        TableNode $responseTable
+        $response
     ): void {
+        if ($response instanceof TableNode) {
+            $response = $response->getHash();
+        }
+
         $headers       = $this->getHeaders($providerName);
-        $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, $query);
-        $response      = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
+        $requestDTO    = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, $query);
+        $responseDTO   = new InteractionResponseDTO($status, $response, $this->matchingObjectStructures);
         $providerState = self::$providerState->getStateDescription($providerName);
 
-        self::$pact->registerInteraction($request, $response, $providerState);
+        self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
     /**

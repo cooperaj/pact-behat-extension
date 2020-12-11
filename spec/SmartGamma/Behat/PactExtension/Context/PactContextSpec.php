@@ -19,6 +19,7 @@ use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\PlainTextStateDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
+use stdClass;
 
 class PactContextSpec extends ObjectBehavior
 {
@@ -39,39 +40,86 @@ class PactContextSpec extends ObjectBehavior
         $this->shouldHaveType(PactContext::class);
     }
 
-    public function it_register_interaction(Pact $pact)
+    public function it_registers_interaction(Pact $pact)
     {
         $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
         $this->registerInteraction(self::PROVIDER_NAME, 'GET', '/', 200);
     }
 
-    public function it_register_interaction_with_body(Pact $pact)
+    public function it_registers_interaction_with_body(Pact $pact)
+    {
+        $response = new TableNode([1 => ['val1', 'val2']]);
+        $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
+        $this->registerInteractionWithBody(
+            self::PROVIDER_NAME,
+            'GET',
+            '/',
+            200,
+            $response
+        );
+    }
+
+    public function it_registers_interaction_with_complex_body(Pact $pact)
+    {
+        $response = new stdClass();
+        $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
+        $this->registerInteractionWithBody(
+            self::PROVIDER_NAME,
+            'GET',
+            '/',
+            200,
+            $response
+        );
+    }
+
+    public function it_registers_interaction_with_query(Pact $pact)
+    {
+        $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
+        $this->registerInteractionWithQuery(
+            self::PROVIDER_NAME,
+            'GET',
+            '/',
+            'filter=1',
+            200
+        );
+    }
+
+    public function it_registers_interaction_with_query_and_body(Pact $pact)
     {
         $responseTable = new TableNode([1 => ['val1', 'val2']]);
         $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
-        $this->registerInteractionWithBody(self::PROVIDER_NAME, 'GET', '/', 200, $responseTable);
+        $this->registerInteractionWithQueryAndBody(
+            self::PROVIDER_NAME,
+            'GET',
+            '/',
+            'filter=1',
+            200,
+            $responseTable
+        );
     }
 
-    public function it_register_interaction_with_query(Pact $pact)
+    public function it_registers_interaction_with_query_and_complex_body(Pact $pact)
     {
+        $response = new stdClass();
         $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
-        $this->registerInteractionWithQuery(self::PROVIDER_NAME, 'GET', '/', 'filter=1', 200);
+        $this->registerInteractionWithQueryAndBody(
+            self::PROVIDER_NAME,
+            'GET',
+            '/',
+            'filter=1',
+            200,
+            $response
+        );
     }
 
-    public function it_register_interaction_with_query_and_body(Pact $pact)
-    {
-        $responseTable = new TableNode([1 => ['val1', 'val2']]);
-        $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
-        $this->registerInteractionWithQueryAndBody(self::PROVIDER_NAME, 'GET', '/', 'filter=1', 200, $responseTable);
-    }
-
-    public function it_rememer_request_to_provider_with_parameters()
+    public function it_remember_request_to_provider_with_parameters()
     {
         $requestTable = new TableNode([1 => ['val1', 'val2']]);
-        $this->requestToWithParameters(self::PROVIDER_NAME, 'GET', '/', $requestTable)->shouldBe(true);
+        $this->requestToWithParameters(self::PROVIDER_NAME, 'GET', '/', $requestTable)
+            ->shouldBe(true);
     }
 
-    public function it_register_response_for_the_stored_request(Pact $pact)
+    public function it_registers_response_for_the_stored_request(Pact $pact)
     {
         $requestTable = new TableNode([1 => ['val1', 'val2']]);
         $this->requestToWithParameters(self::PROVIDER_NAME, 'GET', '/', $requestTable);
@@ -79,7 +127,11 @@ class PactContextSpec extends ObjectBehavior
         $responseTable = new TableNode([1 => ['val1', 'val2']]);
         $pact->registerInteraction(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
 
-        $this->theProviderRequestShouldReturnResponseWithAndBody(self::PROVIDER_NAME, 200, $responseTable);
+        $this->theProviderRequestShouldReturnResponseWithAndBody(
+            self::PROVIDER_NAME,
+            200,
+            $responseTable
+        );
     }
 
     public function it_requires_request_be_defined_before_register_response_to_complex_request(Pact $pact)
@@ -87,8 +139,17 @@ class PactContextSpec extends ObjectBehavior
         $responseTable = new TableNode([1 => ['val1', 'val2']]);
 
         $this->shouldThrow(
-            new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.')
-        )->during('theProviderRequestShouldReturnResponseWithAndBody', [self::PROVIDER_NAME, 200, $responseTable]);
+            new NoConsumerRequestDefined(
+                'No consumer InteractionRequestDTO defined. Call step: "Given :providerName request :method '
+                . 'to :uri with parameters:" before this one.'
+            )
+        )->during(
+            'theProviderRequestShouldReturnResponseWithAndBody',
+            [
+                self::PROVIDER_NAME,
+                200,
+                $responseTable]
+        );
     }
 
     public function it_defines_object_structure_for_matcher()
@@ -122,14 +183,20 @@ class PactContextSpec extends ObjectBehavior
     {
         $providerState->addInjectorState(Argument::any())->shouldBeCalled();
         $table = new TableNode([1 => ['val1', 'val2']]);
-        $this->onTheProviderWithDescription('MyEntity', self::PROVIDER_NAME, 'Entity description', $table);
+        $this->onTheProviderWithDescription(
+            'MyEntity',
+            self::PROVIDER_NAME,
+            'Entity description',
+            $table
+        );
     }
 
     public function it_registers_plain_text_provider_state(ProviderState $providerState)
     {
         $stateText = 'string line';
         $state = new PyStringNode([$stateText], 0);
-        $providerState->setPlainTextState(new PlainTextStateDTO(self::PROVIDER_NAME, $stateText))->shouldBeCalled();
+        $providerState->setPlainTextState(new PlainTextStateDTO(self::PROVIDER_NAME, $stateText))
+            ->shouldBeCalled();
         $this->providerPlainTextState(self::PROVIDER_NAME, $state);
     }
 
