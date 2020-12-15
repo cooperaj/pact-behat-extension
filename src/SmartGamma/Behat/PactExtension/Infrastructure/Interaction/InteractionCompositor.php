@@ -1,35 +1,25 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jekccs
- * Date: 30.11.18
- * Time: 16:18
- */
+
+declare(strict_types=1);
 
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
-
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
-use SmartGamma\Behat\PactExtension\Exception\NoAuthTypeSupported;
+
+use stdClass;
+
+use function count;
 
 class InteractionCompositor
 {
-    /**
-     * @var MatcherInterface
-     */
-    private $matcher;
+    private MatcherInterface $matcher;
 
     public function __construct(MatcherInterface $matcher)
     {
         $this->matcher = $matcher;
     }
 
-    /**
-     * @param InteractionRequestDTO $requestDTO
-     *
-     * @return ConsumerRequest
-     */
     public function createRequestFromDTO(InteractionRequestDTO $requestDTO): ConsumerRequest
     {
         $request = new ConsumerRequest();
@@ -46,18 +36,13 @@ class InteractionCompositor
             $request->addHeader($key, $value);
         }
 
-        if (\count($requestDTO->getBody()) > 0) {
+        if (count($requestDTO->getBody()) > 0) {
             $request->setBody($requestDTO->getBody());
         }
 
         return $request;
     }
 
-    /**
-     * @param InteractionResponseDTO $responseDTO
-     *
-     * @return ProviderResponse
-     */
     public function createResponseFromDTO(InteractionResponseDTO $responseDTO): ProviderResponse
     {
         $response = new ProviderResponse();
@@ -66,7 +51,7 @@ class InteractionCompositor
 
         $bodyParameters = $this->buildResponseBodyWithMatchers($responseDTO);
 
-        if (\count($bodyParameters) > 0) {
+        if ($bodyParameters instanceof stdClass || count($bodyParameters) > 0) {
             $response->setBody($bodyParameters);
         }
 
@@ -75,25 +60,32 @@ class InteractionCompositor
 
     /**
      * @param InteractionResponseDTO $responseDTO
-     *
-     * @return array
+     * @return array|stdClass
      */
-    private function buildResponseBodyWithMatchers(InteractionResponseDTO $responseDTO): array
+    private function buildResponseBodyWithMatchers(InteractionResponseDTO $responseDTO)
     {
-        return array_reduce(
-            $responseDTO->getRawParameters(),
-            function(array $carry, array $bodyItem) use ($responseDTO){
+        $parameters = $responseDTO->getRawParameters();
 
-                $matchType = $bodyItem['match'] ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
-                $value = $matchType == MatcherInterface::EACH_LIKE_TYPE ? $responseDTO->getMatchingObjectStructure($bodyItem['value']) : $bodyItem['value'];
+        if (is_array($parameters)) {
+            return array_reduce(
+                $parameters,
+                function(array $carry, array $bodyItem) use ($responseDTO){
 
-                if ('null' !== $value) {
-                    $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
-                }
+                    $matchType = !empty($bodyItem['match']) ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
+                    $value = $matchType == MatcherInterface::EACH_LIKE_TYPE
+                        ? $responseDTO->getMatchingObjectStructure($bodyItem['value'])
+                        : $bodyItem['value'];
 
-                return $carry;
-            },
-            []
-        );
+                    if ('null' !== $value) {
+                        $carry[$bodyItem['parameter']] = $this->matcher->$matchType($value);
+                    }
+
+                    return $carry;
+                },
+                []
+            );
+        }
+
+        return $parameters;
     }
 }
