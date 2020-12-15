@@ -3,7 +3,6 @@
 [![CircleCI](https://circleci.com/gh/cooperaj/pact-behat-extension.svg?style=shield)](https://circleci.com/gh/cooperaj/pact-behat-extension)
 [![codecov](https://codecov.io/gh/cooperaj/pact-behat-extension/branch/main/graph/badge.svg?token=j6xPirC256)](https://codecov.io/gh/cooperaj/pact-behat-extension)
 
-
 The extension allows to use contract test framework pact.io in BDD style with Behat
 
 ## Install
