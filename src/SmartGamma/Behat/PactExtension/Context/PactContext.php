@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace SmartGamma\Behat\PactExtension\Context;
 
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
-use Behat\Testwork\Hook\Scope\AfterTestScope;
+use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
@@ -288,15 +289,22 @@ class PactContext implements PactContextInterface
      */
     public function verifyInteractions(): void
     {
-        if (in_array('pact', self::$tags, true)) {
-            self::$pact->verifyInteractions();
+        try {
+            if (in_array('pact', self::$tags, true)) {
+                self::$pact->verifyInteractions();
+            }
+        } finally {
+            $result = self::$pact->cleanupInteractions();
+            if (!$result) {
+                echo 'Failed to cleanup PACT mock server interactions';
+            }
         }
     }
 
     /**
      * @AfterSuite
      */
-    public static function teardown(AfterTestScope $scope): bool
+    public static function teardown(AfterSuiteScope $scope): bool
     {
         if (!$scope->getTestResult()->isPassed()) {
             echo 'A test has failed. Skipping PACT file upload.';

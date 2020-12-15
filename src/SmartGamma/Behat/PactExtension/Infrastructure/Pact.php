@@ -103,7 +103,7 @@ class Pact
         $config = new MockServerConfig();
         $config
             ->setHost($providerConfig['PACT_MOCK_SERVER_HOST'])
-            ->setPort($providerConfig['PACT_MOCK_SERVER_PORT'])
+            ->setPort(intval($providerConfig['PACT_MOCK_SERVER_PORT']))
             ->setProvider($providerConfig['PACT_PROVIDER_NAME'])
             ->setConsumer($this->config['PACT_CONSUMER_NAME'])
             ->setPactDir($this->config['PACT_OUTPUT_DIR'])
@@ -202,6 +202,14 @@ class Pact
     {
         foreach ($this->mockServerHttpServices as $providerName => $val) {
             $this->builders[$providerName]->verify();
+        }
+
+        return true;
+    }
+
+    public function cleanupInteractions(): bool
+    {
+        foreach ($this->mockServerHttpServices as $providerName => $val) {
             $this->mockServerHttpServices[$providerName]->deleteAllInteractions();
         }
 
