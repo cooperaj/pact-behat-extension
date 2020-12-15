@@ -7,6 +7,11 @@ services:
     arguments:
       - '@pact.matcher'
 
+  pact.broker_http_client.factory:
+    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\BrokerHttpClientFactory
+    arguments:
+      - '%pact.common.config%'
+
   pact.mock_server.factory:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory
 
@@ -33,6 +38,7 @@ services:
       - '@pact.interaction_builder.factory'
       - '@pact.mock_server_http_service.factory'
       - '@pact.compositor'
+      - '@pact.broker_http_client.factory'
       - '%pact.common.config%'
       - '%pact.providers.config%'
 
