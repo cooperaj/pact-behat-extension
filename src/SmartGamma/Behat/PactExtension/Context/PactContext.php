@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Context;
 
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
-use Behat\Testwork\Hook\Scope\AfterTestScope;
+use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
@@ -15,49 +18,29 @@ use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\PlainTextStateDT
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Pact;
-use Behat\Gherkin\Node\ArgumentInterface;
+
+use stdClass;
+
+use function array_slice;
+use function in_array;
 
 class PactContext implements PactContextInterface
 {
-    /**
-     * @var string
-     */
-    private static $stepName;
+    private static string $stepName;
+    private static array $tags = [];
+    private static Pact $pact;
+    private static ProviderState $providerState;
 
-    /**
-     * @var array
-     */
-    private static $tags = [];
+    private Authenticator $authenticator;
 
-    /**
-     * @var Pact
-     */
-    private static $pact;
+    /** @var InteractionRequestDTO[] */
+    private array $consumerRequest = [];
 
-    /**
-     * @var ProviderState
-     */
-    private static $providerState;
+    /** @var array[] */
+    private array $headers = [];
 
-    /**
-     * @var array
-     */
-    private $consumerRequest = [];
-
-    /**
-     * @var array
-     */
-    private $headers = [];
-
-    /**
-     * @var Authenticator
-     */
-    private $authenticator;
-
-    /**
-     * @var array
-     */
-    private $matchingObjectStructures = [];
+    /** @var array[] */
+    private array $matchingObjectStructures = [];
 
     /**
      * @param Pact          $pact
@@ -69,7 +52,7 @@ class PactContext implements PactContextInterface
         self::$pact          = $pact;
         self::$providerState = $providerState;
         $this->authenticator = $authenticator;
-        self::$stepName = __FUNCTION__;
+        self::$stepName      = __FUNCTION__;
     }
 
     /**
@@ -107,9 +90,8 @@ class PactContext implements PactContextInterface
         string $method,
         string $uri,
         int $status
-    ): void
-    {
-        $headers = $this->getHeaders($providerName);
+    ): void {
+        $headers       = $this->getHeaders($providerName);
         $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers);
         $response      = new InteractionResponseDTO($status);
         $providerState = self::$providerState->getStateDescription($providerName);
@@ -119,21 +101,30 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given :providerName request :method to :uri should return response with :status and body:
+     *
+     * @param string $providerName
+     * @param string $method
+     * @param string $uri
+     * @param int $status
+     * @param TableNode|stdClass $response
      */
     public function registerInteractionWithBody(
         string $providerName,
         string $method,
         string $uri,
         int $status,
-        TableNode $responseTable
-    ): void
-    {
-        $headers = $this->getHeaders($providerName);
-        $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers);
-        $response      = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
+        $response
+    ): void {
+        if ($response instanceof TableNode) {
+            $response = $response->getHash();
+        }
+
+        $headers       = $this->getHeaders($providerName);
+        $requestDTO    = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers);
+        $responseDTO   = new InteractionResponseDTO($status, $response, $this->matchingObjectStructures);
         $providerState = self::$providerState->getStateDescription($providerName);
 
-        self::$pact->registerInteraction($request, $response, $providerState);
+        self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
     /**
@@ -145,9 +136,8 @@ class PactContext implements PactContextInterface
         string $uri,
         string $query,
         int $status
-    ): void
-    {
-        $headers = $this->getHeaders($providerName);
+    ): void {
+        $headers       = $this->getHeaders($providerName);
         $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, $query);
         $response      = new InteractionResponseDTO($status);
         $providerState = self::$providerState->getStateDescription($providerName);
@@ -157,6 +147,13 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given :providerName request :method to :uri with :query should return response with :status and body:
+     *
+     * @param string $providerName
+     * @param string $method
+     * @param string $uri
+     * @param string $query
+     * @param int $status
+     * @param TableNode|stdClass $response
      */
     public function registerInteractionWithQueryAndBody(
         string $providerName,
@@ -164,15 +161,18 @@ class PactContext implements PactContextInterface
         string $uri,
         string $query,
         int $status,
-        TableNode $responseTable
-    ): void
-    {
-        $headers = $this->getHeaders($providerName);
-        $request       = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, $query);
-        $response      = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
+        $response
+    ): void {
+        if ($response instanceof TableNode) {
+            $response = $response->getHash();
+        }
+
+        $headers       = $this->getHeaders($providerName);
+        $requestDTO    = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, $query);
+        $responseDTO   = new InteractionResponseDTO($status, $response, $this->matchingObjectStructures);
         $providerState = self::$providerState->getStateDescription($providerName);
 
-        self::$pact->registerInteraction($request, $response, $providerState);
+        self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
     /**
@@ -183,12 +183,13 @@ class PactContext implements PactContextInterface
         string $method,
         string $uri,
         TableNode $table
-    ): bool
-    {
-        $headers = $this->getHeaders($providerName);
+    ): bool {
+        $headers     = $this->getHeaders($providerName);
         $requestBody = $table->getRowsHash();
+
         array_shift($requestBody);
-        $this->consumerRequest[$providerName] = new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, null, $requestBody);
+        $this->consumerRequest[$providerName] =
+            new InteractionRequestDTO($providerName, self::$stepName, $uri, $method, $headers, null, $requestBody);
 
         return true;
     }
@@ -200,10 +201,10 @@ class PactContext implements PactContextInterface
         string $providerName,
         int $status,
         TableNode $responseTable
-    ): void
-    {
-        if (false === isset($this->consumerRequest[$providerName])) {
-            throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given :providerName request :method to :uri with parameters:" before this one.');
+    ): void {
+        if (!isset($this->consumerRequest[$providerName])) {
+            throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given'
+                . ' :providerName request :method to :uri with parameters:" before this one.');
         }
 
         $request       = $this->consumerRequest[$providerName];
@@ -220,7 +221,9 @@ class PactContext implements PactContextInterface
     public function hasFollowStructureInTheResponseAbove($object, TableNode $table): bool
     {
         if (!preg_match('/^<.*>$/', $object)) {
-            throw new InvalidResponseObjectNameFormat('Response object name should be taken in "<...>" like <name>');
+            throw new InvalidResponseObjectNameFormat(
+                'Response object name should be taken in "<...>" like <name>'
+            );
         }
 
         $eachParameters = $table->getRowsHash();
@@ -244,7 +247,7 @@ class PactContext implements PactContextInterface
      */
     public function onTheProvider(string $entity, string $providerName, TableNode $table): void
     {
-        $parameters    = \array_slice($table->getRowsHash(), 1);
+        $parameters    = array_slice($table->getRowsHash(), 1);
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters);
         self::$providerState->addInjectorState($injectorState);
     }
@@ -252,9 +255,13 @@ class PactContext implements PactContextInterface
     /**
      * @Given :entity as :entityDescription on the provider :providerName:
      */
-    public function onTheProviderWithDescription(string $entity, string $providerName, string $entityDescription, TableNode $table): void
-    {
-        $parameters    = \array_slice($table->getRowsHash(), 1);
+    public function onTheProviderWithDescription(
+        string $entity,
+        string $providerName,
+        string $entityDescription,
+        TableNode $table
+    ): void {
+        $parameters    = array_slice($table->getRowsHash(), 1);
         $injectorState = new InjectorStateDTO($providerName, $entity, $parameters, $entityDescription);
         self::$providerState->addInjectorState($injectorState);
     }
@@ -273,7 +280,8 @@ class PactContext implements PactContextInterface
      */
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
-        $this->headers[$providerName] = $this->authenticator->authorizeConsumerRequestToProvider($authType, $credentials);
+        $this->headers[$providerName] =
+            $this->authenticator->authorizeConsumerRequestToProvider($authType, $credentials);
     }
 
     /**
@@ -281,15 +289,22 @@ class PactContext implements PactContextInterface
      */
     public function verifyInteractions(): void
     {
-        if (\in_array('pact', self::$tags, true)) {
-            self::$pact->verifyInteractions();
+        try {
+            if (in_array('pact', self::$tags, true)) {
+                self::$pact->verifyInteractions();
+            }
+        } finally {
+            $result = self::$pact->cleanupInteractions();
+            if (!$result) {
+                echo 'Failed to cleanup PACT mock server interactions';
+            }
         }
     }
 
     /**
      * @AfterSuite
      */
-    public static function teardown(AfterTestScope $scope): bool
+    public static function teardown(AfterSuiteScope $scope): bool
     {
         if (!$scope->getTestResult()->isPassed()) {
             echo 'A test has failed. Skipping PACT file upload.';

@@ -9,28 +9,26 @@
       "email": "evgeniy.k@smart-gamma.com"
     }
   ],
-  "repositories": [
-    {
-      "type" : "vcs",
-      "url" : "https://github.com/samsonasik/phpspec-code-coverage",
-      "no-api": true
-    }
-  ],
   "type": "library",
   "require": {
-    "php" : ">=7.0",
-    "behat/behat": "^3.4",
-    "pact-foundation/pact-php": "^5.0"
+    "php" : ">=7.4",
+    "behat/behat": "^3.8",
+    "pact-foundation/pact-php": "^6.0"
   },
   "autoload": {
     "psr-4": {
       "SmartGamma\\Behat\\PactExtension\\": "src/SmartGamma/Behat/PactExtension"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "spec\\SmartGamma\\Behat\\PactExtension\\": "spec/SmartGamma/Behat/PactExtension"
+    }
+  },
   "require-dev": {
-    "phpspec/phpspec": "^5.1",
-    "memio/spec-gen": "^0.9.0",
-    "leanphp/phpspec-code-coverage": "dev-patch-1",
-    "phpstan/phpstan": "^0.10.6"
+    "phpspec/phpspec": "^6.3.0",
+    "memio/spec-gen": "^0.10.0",
+    "friends-of-phpspec/phpspec-code-coverage": "^6.0.0",
+    "phpstan/phpstan": "^0.12.59"
   }
 }

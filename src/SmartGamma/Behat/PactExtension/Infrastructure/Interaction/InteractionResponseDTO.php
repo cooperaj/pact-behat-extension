@@ -1,60 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
+
+use stdClass;
 
 class InteractionResponseDTO
 {
-    /**
-     * @var int
-     */
-    private $status;
+    private int $status;
 
-    /**
-     * @var array
-     */
+    /** @var array|stdClass */
     private $rawParameters;
 
-    /**
-     * @var array
-     */
-    private $matchingObjectStructures = [];
+    private array $matchingObjectStructures = [];
 
     /**
      * InteractionResponseDTO constructor.
      *
-     * @param int   $status
-     * @param array $rawParameters
-     * @param array $matchingObjectStructures
+     * @param int            $status
+     * @param array|stdClass $rawParameters
+     * @param array          $matchingObjectStructures
      */
-    public function __construct(int $status, array $rawParameters = [], array $matchingObjectStructures = [])
+    public function __construct(int $status, $rawParameters = [], array $matchingObjectStructures = [])
     {
         $this->status = $status;
         $this->rawParameters = $rawParameters;
         $this->matchingObjectStructures = $matchingObjectStructures;
     }
 
-    /**
-     * @return int
-     */
     public function getStatus(): int
     {
         return $this->status;
     }
 
     /**
-     * @return array
+     * @return array|stdClass
      */
-    public function getRawParameters(): array
+    public function getRawParameters()
     {
         return $this->rawParameters;
     }
 
     /**
      * @param string $objectName
-     *
-     * @return mixed
+     * @return array
      */
-    public function getMatchingObjectStructure(string $objectName)
+    public function getMatchingObjectStructure(string $objectName): array
     {
         return $this->matchingObjectStructures[$objectName];
     }
