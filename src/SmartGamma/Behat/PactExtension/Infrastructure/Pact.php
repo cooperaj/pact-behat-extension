@@ -18,6 +18,13 @@ use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionComposi
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 
+use function end;
+use function exec;
+use function explode;
+use function getenv;
+use function in_array;
+use function is_dir;
+
 class Pact
 {
     private MockServerFactory $mockServerFactory;
@@ -79,7 +86,8 @@ class Pact
     private function registerMockServerHttpServices(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->mockServerHttpServices[$providerName] = $this->mockServerHttpServiceFactory->create($mockServerConfig);
+            $this->mockServerHttpServices[$providerName] =
+                $this->mockServerHttpServiceFactory->create($mockServerConfig);
         }
     }
 
@@ -103,12 +111,12 @@ class Pact
         $config = new MockServerConfig();
         $config
             ->setHost($providerConfig['PACT_MOCK_SERVER_HOST'])
-            ->setPort(intval($providerConfig['PACT_MOCK_SERVER_PORT']))
+            ->setPort((int) $providerConfig['PACT_MOCK_SERVER_PORT'])
             ->setProvider($providerConfig['PACT_PROVIDER_NAME'])
             ->setConsumer($this->config['PACT_CONSUMER_NAME'])
             ->setPactDir($this->config['PACT_OUTPUT_DIR'])
             ->setCors($this->config['PACT_CORS'])
-            ->setHealthCheckTimeout($this->config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT'])
+            ->setHealthCheckTimeout((int) $this->config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT'])
             ->setPactSpecificationVersion(MockServerEnvConfig::DEFAULT_SPECIFICATION_VERSION);
 
         return $config;
@@ -163,7 +171,7 @@ class Pact
 
     private function getPactTag(): string
     {
-        if (!($tag = \getenv('PACT_CONSUMER_TAG'))) {
+        if (!($tag = getenv('PACT_CONSUMER_TAG'))) {
             $tag = $this->resolvePactTag($this->getCurrentGitBranch());
         }
 
@@ -184,7 +192,7 @@ class Pact
 
     private function resolvePactTag(string $branch)
     {
-        return \in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
+        return in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
     }
 
     public function startServer(string $providerName): int
@@ -232,6 +240,6 @@ class Pact
 
     public function getConsumerVersion(): string
     {
-        return $this->config['PACT_CONSUMER_VERSION'];
+        return (string) $this->config['PACT_CONSUMER_VERSION'];
     }
 }
