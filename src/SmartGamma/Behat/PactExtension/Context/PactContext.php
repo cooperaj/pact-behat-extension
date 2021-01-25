@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SmartGamma\Behat\PactExtension\Context;
 
-use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
@@ -196,19 +195,28 @@ class PactContext implements PactContextInterface
 
     /**
      * @Given request above to :providerName should return response with :status and body:
+     *
+     * @param string $providerName
+     * @param int $status
+     * @param TableNode|StdClass $response
+     * @throws NoConsumerRequestDefined
      */
     public function theProviderRequestShouldReturnResponseWithAndBody(
         string $providerName,
         int $status,
-        TableNode $responseTable
+        $response
     ): void {
         if (!isset($this->consumerRequest[$providerName])) {
             throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given'
                 . ' :providerName request :method to :uri with parameters:" before this one.');
         }
 
+        if ($response instanceof TableNode) {
+            $response = $response->getHash();
+        }
+
         $request       = $this->consumerRequest[$providerName];
-        $response      = new InteractionResponseDTO($status, $responseTable->getHash(), $this->matchingObjectStructures);
+        $response      = new InteractionResponseDTO($status, $response, $this->matchingObjectStructures);
         $providerState = self::$providerState->getStateDescription($providerName);
         unset($this->consumerRequest[$providerName]);
 
