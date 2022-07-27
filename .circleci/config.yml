@@ -39,6 +39,7 @@ jobs:
     docker:
       - image: cimg/php:8.1
     steps:
+      - run: sudo pecl install xdebug-stable
       - build_test
       - persist_to_workspace:
           root: /home/circleci/project
