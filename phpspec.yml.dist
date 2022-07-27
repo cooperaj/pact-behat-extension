@@ -1,5 +1,4 @@
 extensions:
-  Memio\SpecGen\MemioSpecGenExtension: ~
   LeanPHP\PhpSpec\CodeCoverage\CodeCoverageExtension:
     format: [clover, html]
     output:
