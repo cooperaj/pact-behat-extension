@@ -13,7 +13,7 @@
   "require": {
     "php" : ">=7.4",
     "behat/behat": "^3.8",
-    "pact-foundation/pact-php": "^6.0"
+    "pact-foundation/pact-php": "^7.0"
   },
   "autoload": {
     "psr-4": {
@@ -26,8 +26,7 @@
     }
   },
   "require-dev": {
-    "phpspec/phpspec": "^6.3.0",
-    "memio/spec-gen": "^0.10.0",
+    "phpspec/phpspec": "^7.2",
     "friends-of-phpspec/phpspec-code-coverage": "^6.0.0",
     "phpstan/phpstan": "^0.12.59"
   }
