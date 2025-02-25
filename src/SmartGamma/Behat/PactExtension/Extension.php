@@ -79,10 +79,8 @@ class Extension implements ExtensionInterface
 
     /**
      * @param mixed[]               $originalConfig
-     * @phpstan-param Configuration $originalConfig
      *
      * @return         mixed[]
-     * @phpstan-return Configuration
      */
     private function normalizeProvidersConfig(array $originalConfig): array
     {

@@ -22,10 +22,10 @@ commands:
           paths:
             - ./vendor
 
-      - run: php -d xdebug.mode=coverage ./vendor/bin/phpspec run --config=phpspec.yml.dist --no-interaction
+      - run: php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-clover ./build/clover.xml --log-junit ./build/junit.xml
 
       - store_test_results:
-          path: build
+          path: build/
 
 jobs:
 
