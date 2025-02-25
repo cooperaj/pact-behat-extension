@@ -7,12 +7,16 @@
     {
       "name": "Evgeniy Kuzmin",
       "email": "evgeniy.k@smart-gamma.com"
+    },
+    {
+      "name": "Adam Buntain-Cooper",
+      "email": "adam@acpr.dev"
     }
   ],
   "type": "library",
   "require": {
-    "php" : ">=7.4",
-    "behat/behat": "^3.8",
+    "php" : "~8.1 || ~8.2 || ~8.3 || ~8.4",
+    "behat/behat": "^3.16",
     "pact-foundation/pact-php": "^7.0"
   },
   "autoload": {
@@ -22,12 +26,11 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "spec\\SmartGamma\\Behat\\PactExtension\\": "spec/SmartGamma/Behat/PactExtension"
+      "Tests\\SmartGamma\\Behat\\PactExtension\\": "tests/SmartGamma/Behat/PactExtension"
     }
   },
   "require-dev": {
-    "phpspec/phpspec": "^7.2",
-    "friends-of-phpspec/phpspec-code-coverage": "^6.0.0",
-    "phpstan/phpstan": "^0.12.59"
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^10.5"
   }
 }

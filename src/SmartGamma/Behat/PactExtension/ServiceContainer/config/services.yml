@@ -30,7 +30,7 @@ services:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor
     arguments:
       - '@behat.matcher'
-      -
+
   pact.infrastructure:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
     arguments:

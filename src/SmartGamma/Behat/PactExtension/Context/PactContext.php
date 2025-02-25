@@ -8,6 +8,11 @@ use Behat\Behat\Hook\Scope\StepScope;
 use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Hook\AfterScenario;
+use Behat\Hook\AfterSuite;
+use Behat\Hook\BeforeScenario;
+use Behat\Hook\BeforeStep;
+use Behat\Step\Given;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
@@ -26,8 +31,12 @@ use function in_array;
 class PactContext implements PactContextInterface
 {
     private static string $stepName;
+
+    /** @var string[] */
     private static array $tags = [];
+
     private static Pact $pact;
+
     private static ProviderState $providerState;
 
     private Authenticator $authenticator;
@@ -54,18 +63,14 @@ class PactContext implements PactContextInterface
         self::$stepName      = __FUNCTION__;
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public function setupBehatTags(ScenarioScope $scope): void
     {
         self::$tags = $scope->getScenario()->getTags();
         self::$providerState->clearStates();
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public static function setupBehatStepName(ScenarioScope $step): void
     {
         if ($step->getScenario()->getTitle()) {
@@ -73,17 +78,13 @@ class PactContext implements PactContextInterface
         }
     }
 
-    /**
-     * @BeforeStep
-     */
+    #[BeforeStep]
     public static function setupBehatScenarioName(StepScope $step): void
     {
         self::$stepName = $step->getStep()->getText();
     }
 
-    /**
-     * @Given :providerName request :method to :uri should return response with :status
-     */
+    #[Given(':providerName request :method to :uri should return response with :status')]
     public function registerInteraction(
         string $providerName,
         string $method,
@@ -98,21 +99,13 @@ class PactContext implements PactContextInterface
         self::$pact->registerInteraction($request, $response, $providerState);
     }
 
-    /**
-     * @Given :providerName request :method to :uri should return response with :status and body:
-     *
-     * @param string $providerName
-     * @param string $method
-     * @param string $uri
-     * @param int $status
-     * @param TableNode|stdClass $response
-     */
+    #[Given(':providerName request :method to :uri should return response with :status and body:')]
     public function registerInteractionWithBody(
         string $providerName,
         string $method,
         string $uri,
         int $status,
-        $response
+        TableNode|stdClass $response
     ): void {
         if ($response instanceof TableNode) {
             $response = $response->getHash();
@@ -126,9 +119,7 @@ class PactContext implements PactContextInterface
         self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
-    /**
-     * @Given :providerName request :method to :uri with :query should return response with :status
-     */
+    #[Given(':providerName request :method to :uri with :query should return response with :status')]
     public function registerInteractionWithQuery(
         string $providerName,
         string $method,
@@ -144,23 +135,14 @@ class PactContext implements PactContextInterface
         self::$pact->registerInteraction($request, $response, $providerState);
     }
 
-    /**
-     * @Given :providerName request :method to :uri with :query should return response with :status and body:
-     *
-     * @param string $providerName
-     * @param string $method
-     * @param string $uri
-     * @param string $query
-     * @param int $status
-     * @param TableNode|stdClass $response
-     */
+    #[Given(':providerName request :method to :uri with :query should return response with :status and body:')]
     public function registerInteractionWithQueryAndBody(
         string $providerName,
         string $method,
         string $uri,
         string $query,
         int $status,
-        $response
+        TableNode|stdClass $response
     ): void {
         if ($response instanceof TableNode) {
             $response = $response->getHash();
@@ -174,9 +156,7 @@ class PactContext implements PactContextInterface
         self::$pact->registerInteraction($requestDTO, $responseDTO, $providerState);
     }
 
-    /**
-     * @Given :providerName request :method to :uri with parameters:
-     */
+    #[Given(':providerName request :method to :uri with parameters:')]
     public function requestToWithParameters(
         string $providerName,
         string $method,
@@ -193,18 +173,11 @@ class PactContext implements PactContextInterface
         return true;
     }
 
-    /**
-     * @Given request above to :providerName should return response with :status and body:
-     *
-     * @param string $providerName
-     * @param int $status
-     * @param TableNode|StdClass $response
-     * @throws NoConsumerRequestDefined
-     */
+    #[Given('request above to :providerName should return response with :status and body:')]
     public function theProviderRequestShouldReturnResponseWithAndBody(
         string $providerName,
         int $status,
-        $response
+        TableNode|stdClass $response
     ): void {
         if (!isset($this->consumerRequest[$providerName])) {
             throw new NoConsumerRequestDefined('No consumer InteractionRequestDTO defined. Call step: "Given'
@@ -223,10 +196,8 @@ class PactContext implements PactContextInterface
         self::$pact->registerInteraction($request, $response, $providerState);
     }
 
-    /**
-     * @Given :object object should have follow structure:
-     */
-    public function hasFollowStructureInTheResponseAbove($object, TableNode $table): bool
+    #[Given(':object object should have the following structure:')]
+    public function hasTheFollowingStructureInTheResponse(string $object, TableNode $table): bool
     {
         if (!preg_match('/^<.*>$/', $object)) {
             throw new InvalidResponseObjectNameFormat(
@@ -242,17 +213,13 @@ class PactContext implements PactContextInterface
         return true;
     }
 
-    /**
-     * @Given :providerName API is available
-     */
+    #[Given(':providerName API is available')]
     public function mockedApiProviderIsAvailable(string $providerName): int
     {
         return self::$pact->startServer($providerName);
     }
 
-    /**
-     * @Given :entity on the provider :providerName:
-     */
+    #[Given(':entity on the provider :providerName:')]
     public function onTheProvider(string $entity, string $providerName, TableNode $table): void
     {
         $parameters    = array_slice($table->getRowsHash(), 1);
@@ -260,9 +227,7 @@ class PactContext implements PactContextInterface
         self::$providerState->addInjectorState($injectorState);
     }
 
-    /**
-     * @Given :entity as :entityDescription on the provider :providerName:
-     */
+    #[Given(':entity as :entityDescription on the provider :providerName:')]
     public function onTheProviderWithDescription(
         string $entity,
         string $providerName,
@@ -274,27 +239,21 @@ class PactContext implements PactContextInterface
         self::$providerState->addInjectorState($injectorState);
     }
 
-    /**
-     * @Given provider :providerName state:
-     */
+    #[Given('provider :providerName state:')]
     public function providerPlainTextState(string $providerName, PyStringNode $state): void
     {
         $textStateDTO = new PlainTextStateDTO($providerName, $state->getRaw());
         self::$providerState->setPlainTextState($textStateDTO);
     }
 
-    /**
-     * @Given the consumer :authType authorized as :credentials on :providerName
-     */
+    #[Given('the consumer :authType authorized as :credentials on :providerName')]
     public function theConsumerAuthorizedAsOn(string $authType, string $credentials, string $providerName): void
     {
         $this->headers[$providerName] =
             $this->authenticator->authorizeConsumerRequestToProvider($authType, $credentials);
     }
 
-    /**
-     * @AfterScenario
-     */
+    #[AfterScenario]
     public function verifyInteractions(): void
     {
         try {
@@ -309,22 +268,24 @@ class PactContext implements PactContextInterface
         }
     }
 
-    /**
-     * @AfterSuite
-     */
+    #[AfterSuite]
     public static function teardown(AfterSuiteScope $scope): bool
     {
         if (!$scope->getTestResult()->isPassed()) {
             echo 'A test has failed. Skipping PACT file upload.';
-
             return false;
         }
 
         return self::$pact->finalize(self::$pact->getConsumerVersion());
     }
 
+    /**
+     * @param string $providerName
+     *
+     * @return string[]
+     */
     private function getHeaders(string $providerName): array
     {
-        return isset($this->headers[$providerName]) ? $this->headers[$providerName] : [];
+        return $this->headers[$providerName] ?? [];
     }
 }

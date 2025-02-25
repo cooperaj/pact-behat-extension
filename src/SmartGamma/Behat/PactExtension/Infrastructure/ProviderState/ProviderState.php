@@ -1,63 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\ProviderState;
 
 class ProviderState implements ProviderStateInterface
 {
-    /**
-     * @var array
-     */
-    private $injectors = [];
+    /** @var InjectorStateDTO[] */
+    private array $injectors = [];
 
-    /**
-     * @var array
-     */
-    private $plainTextState = [];
+    /** @var string[] */
+    private array $plainTextState = [];
 
-    /**
-     * @var string
-     */
-    private $defaultPlainTextState;
+    private string $defaultPlainTextState;
 
-    /**
-     * @param string $providerName
-     *
-     * @return string
-     */
     public function getStateDescription(string $providerName): string
     {
         if (isset($this->injectors[$providerName])) {
-            /** @var InjectorStateDTO $injector */
             $injector = $this->injectors[$providerName][0];
-            $given    = 'Create '
+            return 'Create '
                 . $injector->getEntityName()
                 . $injector->getEntityDescription()
                 . ':'
                 . \json_encode($injector->getParameters());
-
-            return $given;
         }
 
         if (isset($this->plainTextState[$providerName])) {
-            $given = $this->plainTextState [$providerName];
-
-            return $given;
+            return $this->plainTextState[$providerName];
         }
 
         return $this->defaultPlainTextState;
     }
 
-    public function addInjectorState(InjectorStateDTO $injectorStateDTO)
+    public function addInjectorState(InjectorStateDTO $injectorStateDTO): void
     {
         $this->injectors[$injectorStateDTO->getProviderName()][] = $injectorStateDTO;
     }
 
-    public function setDefaultPlainTextState(string $text)
+    public function setDefaultPlainTextState(string $text): void
     {
         $this->defaultPlainTextState = $text;
     }
 
-    public function setPlainTextState(PlainTextStateDTO $textStateDTO)
+    public function setPlainTextState(PlainTextStateDTO $textStateDTO): void
     {
         $this->plainTextState[$textStateDTO->getProviderName()] = $textStateDTO->getStateDescription();
     }
@@ -65,7 +50,7 @@ class ProviderState implements ProviderStateInterface
     /**
      * In order to clear states defined in the multiple scenarios in with context
      */
-    public function clearStates()
+    public function clearStates(): void
     {
         unset($this->injectors);
         unset($this->plainTextState);

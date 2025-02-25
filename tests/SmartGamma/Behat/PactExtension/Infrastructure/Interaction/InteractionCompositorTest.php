@@ -2,34 +2,39 @@
 
 declare(strict_types=1);
 
-namespace spec\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
+namespace Tests\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\TestCase;
 use Behat\Gherkin\Node\TableNode;
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
-use PhpSpec\ObjectBehavior;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\MatcherInterface;
 use stdClass;
 
-class InteractionCompositorSpec extends ObjectBehavior
+#[CoversClass(InteractionCompositor::class)]
+#[UsesClass(InteractionRequestDTO::class)]
+#[UsesClass(InteractionResponseDTO::class)]
+final class InteractionCompositorTest extends TestCase
 {
+    private InteractionCompositor $interactionCompositor;
+
     const PROVIDER_NAME= 'some_provider_name';
     const PROVIDER_API_PATH = '/api/test';
 
-    public function let(MatcherInterface $matcher): void
+    protected function setUp(): void
     {
-        $this->beConstructedWith($matcher);
+        $matcherMock                 = $this->createMock(MatcherInterface::class);
+        $this->interactionCompositor = new InteractionCompositor($matcherMock);
     }
 
-    function it_is_initializable(): void
-    {
-        $this->shouldHaveType(InteractionCompositor::class);
-    }
-
-    public function it_creates_basic_consumer_request(): void
+    #[Test]
+    public function createsBasicConsumerRequest(): void
     {
         $dto = new InteractionRequestDTO(
             self::PROVIDER_NAME,
@@ -37,19 +42,19 @@ class InteractionCompositorSpec extends ObjectBehavior
             self::PROVIDER_API_PATH
         );
 
-        $this->createRequestFromDTO($dto)
-            ->shouldBeAnInstanceOf(ConsumerRequest::class);
+        $this->assertInstanceOf(ConsumerRequest::class, $this->interactionCompositor->createRequestFromDTO($dto));
     }
 
-    public function it_creates_basic_provider_response(): void
+    #[Test]
+    public function createsBasicProviderResponse(): void
     {
         $dto = new InteractionResponseDTO(200);
 
-        $this->createResponseFromDTO($dto)
-            ->shouldBeAnInstanceOf(ProviderResponse::class);
+        $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
 
-    public function it_creates_tablenode_based_provider_response(): void
+    #[Test]
+    public function createsTablenodeBasedProviderResponse(): void
     {
         $response = new TableNode(
             [
@@ -61,11 +66,11 @@ class InteractionCompositorSpec extends ObjectBehavior
 
         $dto = new InteractionResponseDTO(200, $response->getHash());
 
-        $this->createResponseFromDTO($dto)
-            ->shouldBeAnInstanceOf(ProviderResponse::class);
+        $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
 
-    public function it_creates_tablenode_based_provider_response_with_eachLike(): void
+    #[Test]
+    public function createsTablenodeBasedProviderResponseWithEachLike(): void
     {
         $response = new TableNode(
             [
@@ -85,11 +90,11 @@ class InteractionCompositorSpec extends ObjectBehavior
 
         $dto = new InteractionResponseDTO(200, $response->getHash(), $matchingObjects);
 
-        $this->createResponseFromDTO($dto)
-            ->shouldBeAnInstanceOf(ProviderResponse::class);
+        $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
 
-    public function it_creates_tablenode_based_provider_response_with_custom_matcher(): void
+    #[Test]
+    public function createsTablenodeBasedProviderResponseWithCustomMatcher(): void
     {
         $response = new TableNode(
             [
@@ -101,11 +106,11 @@ class InteractionCompositorSpec extends ObjectBehavior
 
         $dto = new InteractionResponseDTO(200, $response->getHash());
 
-        $this->createResponseFromDTO($dto)
-            ->shouldBeAnInstanceOf(ProviderResponse::class);
+        $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
 
-    public function it_creates_stdClass_based_provider_response(): void
+    #[Test]
+    public function createsStdClassBasedProviderResponse(): void
     {
         $response = new stdClass();
         $response->test1 = 'test1Value';
@@ -113,7 +118,6 @@ class InteractionCompositorSpec extends ObjectBehavior
 
         $dto = new InteractionResponseDTO(200, $response);
 
-        $this->createResponseFromDTO($dto)
-            ->shouldBeAnInstanceOf(ProviderResponse::class);
+        $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
 }

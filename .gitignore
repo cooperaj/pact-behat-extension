@@ -4,6 +4,8 @@ build/
 !build/.gitkeep
 
 vendor/
+.phpunit.cache/
+.phpunit.result.cache
 infection.phar.asc
 
 composer.lock

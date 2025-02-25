@@ -10,19 +10,20 @@ class InteractionResponseDTO
 {
     private int $status;
 
-    /** @var array|stdClass */
-    private $rawParameters;
+    /** @var mixed[]|stdClass */
+    private array|stdClass $rawParameters;
 
+    /** @var mixed[] */
     private array $matchingObjectStructures = [];
 
     /**
      * InteractionResponseDTO constructor.
      *
-     * @param int            $status
-     * @param array|stdClass $rawParameters
-     * @param array          $matchingObjectStructures
+     * @param int              $status
+     * @param mixed[]|stdClass $rawParameters
+     * @param mixed[]          $matchingObjectStructures
      */
-    public function __construct(int $status, $rawParameters = [], array $matchingObjectStructures = [])
+    public function __construct(int $status, array|stdClass $rawParameters = [], array $matchingObjectStructures = [])
     {
         $this->status = $status;
         $this->rawParameters = $rawParameters;
@@ -35,16 +36,16 @@ class InteractionResponseDTO
     }
 
     /**
-     * @return array|stdClass
+     * @return mixed[]|stdClass
      */
-    public function getRawParameters()
+    public function getRawParameters(): array|stdClass
     {
         return $this->rawParameters;
     }
 
     /**
      * @param string $objectName
-     * @return array
+     * @return mixed[]
      */
     public function getMatchingObjectStructure(string $objectName): array
     {

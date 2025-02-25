@@ -7,6 +7,7 @@ namespace SmartGamma\Behat\PactExtension\Infrastructure\Factory;
 use GuzzleHttp\Psr7\Uri;
 use PhpPact\Broker\Service\BrokerHttpClient;
 use PhpPact\Http\GuzzleClient;
+use RuntimeException;
 
 class BrokerHttpClientFactory 
 {
@@ -14,6 +15,9 @@ class BrokerHttpClientFactory
     private string $authUser = '';
     private string $authPassword = '';
 
+    /**
+     * @param string[] $config
+     */
     public function __construct(array $config)
     {
         $this->brokerUri = $config['PACT_BROKER_URI'] ?? '';
@@ -27,7 +31,7 @@ class BrokerHttpClientFactory
     public function create(): BrokerHttpClient
     {
         if ($this->brokerUri === '') {
-            throw new \RuntimeException('Attempt to create Pact broker client without uri configured');
+            throw new RuntimeException('Attempt to create Pact broker client without uri configured');
         }
 
         $clientConfig = [];

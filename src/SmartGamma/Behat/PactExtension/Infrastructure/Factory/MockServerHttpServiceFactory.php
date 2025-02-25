@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Factory;
 
 use PhpPact\Http\GuzzleClient;
@@ -8,10 +10,7 @@ use PhpPact\Standalone\MockService\Service\MockServerHttpService;
 
 class MockServerHttpServiceFactory
 {
-    /**
-     * @var GuzzleClient
-     */
-    private $client;
+    private GuzzleClient $client;
 
     public function __construct(GuzzleClient $client)
     {

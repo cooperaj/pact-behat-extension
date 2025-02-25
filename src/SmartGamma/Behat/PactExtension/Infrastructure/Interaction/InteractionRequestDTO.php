@@ -1,52 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 class InteractionRequestDTO
 {
-    /**
-     * @var string
-     */
-    private $providerName;
+    private string $providerName;
+
+    private string $description;
+
+    private string $method;
+
+    private string $uri;
+
+    private ?string $query;
+
+    /** @var mixed[] */
+    private array $body;
+
+    /** @var string[] */
+    private array $headers = [];
 
     /**
-     * @var string
-     */
-    private $description;
-
-    /**
-     * @var string
-     */
-    private $method;
-
-    /**
-     * @var string
-     */
-    private $uri;
-
-    /**
-     * @var string | null
-     */
-    private $query;
-
-    /**
-     * @var array
-     */
-    private $body;
-
-    /**
-     * @var array
-     */
-    private $headers = [];
-
-    /**
-     * InteractionRequestDTO constructor.
-     *
      * @param string      $providerName
      * @param string      $description
      * @param string      $uri
      * @param string      $method
-     * @param array       $headers
+     * @param string[]    $headers
      * @param string|null $query
      * @param array       $body
      */
@@ -69,48 +50,33 @@ class InteractionRequestDTO
         $this->headers      = $headers;
     }
 
-    /**
-     * @return string
-     */
     public function getProviderName(): string
     {
         return $this->providerName;
     }
 
-    /**
-     * @return string
-     */
     public function getDescription(): string
     {
         return $this->description;
     }
 
-    /**
-     * @return string
-     */
     public function getUri(): string
     {
         return $this->uri;
     }
 
-    /**
-     * @return string
-     */
     public function getMethod(): string
     {
         return $this->method;
     }
 
-    /**
-     * @return string|null
-     */
     public function getQuery(): ?string
     {
         return $this->query;
     }
 
     /**
-     * @return array
+     * @return mixed[]
      */
     public function getBody(): array
     {
@@ -118,7 +84,7 @@ class InteractionRequestDTO
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getHeaders(): array
     {

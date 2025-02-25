@@ -1,65 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\ProviderState;
 
 class InjectorStateDTO
 {
-    /**
-     * @var string
-     */
-    private $providerName;
+    private string $providerName;
+
+    private string $entityName;
+
+    /** @var mixed[] */
+    private array $parameters;
+
+    private string $entityDescription;
 
     /**
-     * @var string
+     * @param string      $providerName
+     * @param string      $entityName
+     * @param mixed[]     $parameters
+     * @param string|null $entityDescription
      */
-    private $entityName;
-
-    /**
-     * @var array
-     */
-    private $parameters = [];
-
-    /**
-     * @var string
-     */
-    private $entityDescription;
-
-    public function __construct(string $providerName, string $entityName, array $parameters, ?string $entityDescription = null)
-    {
+    public function __construct(
+        string $providerName,
+        string $entityName,
+        array $parameters = [],
+        ?string $entityDescription = null
+    ) {
         $this->providerName      = $providerName;
         $this->entityName        = $entityName;
         $this->entityDescription = $entityDescription ? '(' . $entityDescription . ')' : '';
         $this->parameters        = $parameters;
     }
 
-    /**
-     * @return string
-     */
     public function getProviderName(): string
     {
         return $this->providerName;
     }
 
-    /**
-     * @return string
-     */
-    public function getEntityName()
+    public function getEntityName(): string
     {
         return $this->entityName;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getEntityDescription()
+    public function getEntityDescription(): string
     {
         return $this->entityDescription;
     }
 
     /**
-     * @return array
+     * @return mixed[]
      */
-    public function getParameters()
+    public function getParameters(): array
     {
         return $this->parameters;
     }

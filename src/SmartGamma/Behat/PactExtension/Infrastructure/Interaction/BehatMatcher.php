@@ -1,127 +1,87 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 use PhpPact\Consumer\Matcher\Matcher;
 
 class BehatMatcher implements MatcherInterface
 {
-    /**
-     * @var Matcher
-     */
-    private $pactMatcher;
+    private Matcher $pactMatcher;
 
     public function __construct(Matcher $matcher)
     {
         $this->pactMatcher = $matcher;
     }
 
-    /**
-     * @param $value
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function like($value)
+    public function like(mixed $value): array
     {
         return $this->pactMatcher->like($this->normaliseValue($value));
     }
 
-    /**
-     * @param $value
-     *
-     * @return mixed
-     */
-    public function exact($value)
+    public function exact(mixed $value): mixed
     {
         return $value;
     }
 
-    /**
-     * @param string $value
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function dateTimeISO8601(string $value)
+    public function dateTimeISO8601(string $value): array
     {
         return $this->pactMatcher->dateTimeISO8601($value);
     }
 
-    /**
-     * @param string $value
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function boolean(string $value)
+    public function boolean(mixed $value): array
     {
         return $this->pactMatcher->boolean();
     }
 
-    /**
-     * @param string $value
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function integer(string $value)
+    public function integer(string|int $value): array
     {
-        return $this->pactMatcher->integer((int)$value);
+        return $this->pactMatcher->integer((int) $value);
     }
 
-    /**
-     * @param string $value
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function uuid(string $value)
+    public function uuid(string $value): array
     {
         return $this->pactMatcher->uuid($value);
     }
 
-    /**
-     * @param array $object
-     *
-     * @return array
-     */
-    public function eachLike(array $object)
+    public function eachLike(mixed $object): array
     {
         return $this->pactMatcher->eachLike($object);
     }
 
     /**
-     * @param string $string
+     * @template T of bool|float|int|null|string
+     * @param T $value
      *
-     * @return bool | float | int | null | string
+     * @return T
      */
-    private function normaliseValue(string $string)
+    private function normaliseValue(mixed $value): mixed
     {
-        if (empty($string)) {
+        if (empty($value)) {
             return '';
         }
 
-        if ('null' === $string) {
+        if ('null' === $value) {
             return null;
         }
 
-        if (!preg_match('/[^0-9.]+/', $string)) {
-            if (preg_match('/[.]+/', $string)) {
-                return (float)$string;
+        if (!preg_match('/[^0-9.]+/', $value)) {
+            if (preg_match('/[.]+/', $value)) {
+                return (float)$value;
             }
 
-            return (int)$string;
+            return (int)$value;
         }
 
-        if ('true' === $string) {
+        if ('true' === $value) {
             return true;
         }
 
-        if ('false' === $string) {
+        if ('false' === $value) {
             return false;
         }
 
-        return (string)$string;
+        return (string)$value;
     }
 }

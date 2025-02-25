@@ -60,9 +60,10 @@ class InteractionCompositor
 
     /**
      * @param InteractionResponseDTO $responseDTO
-     * @return array|stdClass
+     *
+     * @return mixed[]|stdClass
      */
-    private function buildResponseBodyWithMatchers(InteractionResponseDTO $responseDTO)
+    private function buildResponseBodyWithMatchers(InteractionResponseDTO $responseDTO): array|stdClass
     {
         $parameters = $responseDTO->getRawParameters();
 

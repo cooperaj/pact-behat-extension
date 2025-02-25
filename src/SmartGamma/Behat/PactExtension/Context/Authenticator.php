@@ -12,20 +12,17 @@ class Authenticator
      * @param string $authType
      * @param string $credentials
      *
-     * @return array
+     * @return array{
+     *     Authorization: string
+     * }
      *
      * @throws NoAuthTypeSupported
      */
     public function authorizeConsumerRequestToProvider(string $authType, string $credentials): array
     {
-        switch ($authType) {
-            case 'http':
-                $headers = ['Authorization' => 'Basic ' . base64_encode($credentials)];
-                break;
-            default:
-                throw new NoAuthTypeSupported('No authorization type:' . $authType . ' is supported');
-        }
-
-        return $headers;
+        return match ($authType) {
+            'http' => ['Authorization' => 'Basic ' . base64_encode($credentials)],
+            default => throw new NoAuthTypeSupported('No authorization type:' . $authType . ' is supported'),
+        };
     }
 }

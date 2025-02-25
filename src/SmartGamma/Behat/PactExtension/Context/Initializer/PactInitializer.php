@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension\Context\Initializer;
 
 use Behat\Behat\Context\Context;
@@ -11,28 +13,12 @@ use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
 
 class PactInitializer implements ContextInitializer
 {
-    /**
-     * @var Pact
-     */
-    private $pact;
+    private Pact $pact;
 
-    /**
-     * @var ProviderState
-     */
-    private $providerState;
+    private ProviderState $providerState;
 
-    /**
-     * @var Authenticator
-     */
-    private $authenticator;
+    private Authenticator $authenticator;
 
-    /**
-     * PactInitializer constructor.
-     *
-     * @param Pact          $pact
-     * @param ProviderState $providerState
-     * @param Authenticator $authenticator
-     */
     public function __construct(
         Pact $pact,
         ProviderState $providerState,
@@ -44,28 +30,18 @@ class PactInitializer implements ContextInitializer
         $this->authenticator = $authenticator;
     }
 
-    /**
-     * @param mixed $context
-     *
-     * @return bool
-     */
-    public function supports($context)
+    public function supports(object $context): bool
     {
         return $context instanceof PactContextInterface;
     }
 
-    /**
-     * @param Context $context
-     *
-     * @return bool
-     */
-    public function initializeContext(Context $context)
+    public function initializeContext(Context $context): bool
     {
-        if (false === $this->supports($context)) {
-
+        if ($this->supports($context) === false) {
             return false;
         }
 
+        /** @var PactContextInterface $context */
         $context->initialize($this->pact, $this->providerState, $this->authenticator);
 
         return true;

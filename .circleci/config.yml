@@ -29,15 +29,16 @@ commands:
 
 jobs:
 
-  build_test_74:
+  build_test_8_matrix:
     docker:
-      - image: circleci/php:7.4-cli
+      - image: cimg/php:<< parameters.php_v>>
     steps:
+      - run: sudo pecl install xdebug-stable
       - build_test
 
-  build_test_81:
+  build_test_84:
     docker:
-      - image: cimg/php:8.1
+      - image: cimg/php:8.4
     steps:
       - run: sudo pecl install xdebug-stable
       - build_test
@@ -67,8 +68,11 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build_test_74
-      - build_test_81
+      - build_test_8_matrix:
+          matrix:
+            parameters:
+              php_v: ["8.1", "8.2", "8.3"]
+      - build_test_84
       - upload_codecov:
           requires:
-            - build_test_81
+            - build_test_84

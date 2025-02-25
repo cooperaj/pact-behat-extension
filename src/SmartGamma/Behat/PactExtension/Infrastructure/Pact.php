@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SmartGamma\Behat\PactExtension\Infrastructure;
 
+use Exception;
 use GuzzleHttp\Exception\ClientException;
 use PhpPact\Consumer\InteractionBuilder;
 use PhpPact\Standalone\MockService\MockServer;
@@ -40,7 +41,7 @@ class Pact
     /** @var MockServer[] $servers */
     private array $servers = [];
 
-    /** @var int [] $startedServers */
+    /** @var int[] $startedServers */
     private array $startedServers = [];
 
     /** @var MockServerConfig[] $mockServerConfigs */
@@ -106,17 +107,23 @@ class Pact
         }
     }
 
+    /**
+     * @param string[] $providerConfig
+     *
+     * @return MockServerConfig
+     */
     private function createMockServerConfig(array $providerConfig): MockServerConfig
     {
         $config = new MockServerConfig();
         $config
             ->setHost($providerConfig['PACT_MOCK_SERVER_HOST'])
             ->setPort((int) $providerConfig['PACT_MOCK_SERVER_PORT'])
+            ->setCors($this->config['PACT_CORS'])
+            ->setHealthCheckTimeout((int) $this->config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT']);
+        $config
             ->setProvider($providerConfig['PACT_PROVIDER_NAME'])
             ->setConsumer($this->config['PACT_CONSUMER_NAME'])
             ->setPactDir($this->config['PACT_OUTPUT_DIR'])
-            ->setCors($this->config['PACT_CORS'])
-            ->setHealthCheckTimeout((int) $this->config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT'])
             ->setPactSpecificationVersion(MockServerEnvConfig::DEFAULT_SPECIFICATION_VERSION);
 
         return $config;
@@ -190,20 +197,24 @@ class Pact
         return $branch;
     }
 
-    private function resolvePactTag(string $branch)
+    private function resolvePactTag(string $branch): string
     {
         return in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
     }
 
+    /**
+     * @param string $providerName
+     *
+     * @return int
+     * @throws Exception
+     */
     public function startServer(string $providerName): int
     {
         if (isset($this->startedServers[$providerName])) {
             return $this->startedServers[$providerName];
         }
 
-        $pid = $this->startedServers[$providerName] = $this->servers[$providerName]->start();
-
-        return $pid;
+        return $this->startedServers[$providerName] = $this->servers[$providerName]->start();
     }
 
     public function verifyInteractions(): bool
