@@ -25,7 +25,7 @@ commands:
       - run: php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-clover ./build/clover.xml --log-junit ./build/junit.xml
 
       - store_test_results:
-          path: build/
+          path: ./build/junit.xml
 
 jobs:
 
