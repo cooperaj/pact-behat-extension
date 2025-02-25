@@ -30,6 +30,9 @@ commands:
 jobs:
 
   build_test_8_matrix:
+    parameters:
+      php_v:
+        type: string
     docker:
       - image: cimg/php:<< parameters.php_v>>
     steps:
