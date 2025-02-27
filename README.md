@@ -25,12 +25,7 @@ Add to behat.yml / behat.yml.dist
         SmartGamma\Behat\PactExtension\Extension:
             common:
                 PACT_CONSUMER_NAME: consumer_name
-                PACT_CORS: false
-                PACT_BROKER_URI: https://pact.youdomain.com
                 PACT_OUTPUT_DIR: var/pact/
-                PACT_BROKER_HTTP_AUTH_USER: user
-                PACT_BROKER_HTTP_AUTH_PASS: pass
-                PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT: 10
             providers:
                 - provider1_name: localhost:9090
                 # in case of you have to communicate with more providers from the consumer 

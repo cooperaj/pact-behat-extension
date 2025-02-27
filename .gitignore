@@ -6,6 +6,6 @@ build/
 vendor/
 .phpunit.cache/
 .phpunit.result.cache
-infection.phar.asc
+infection.phar
 
 composer.lock

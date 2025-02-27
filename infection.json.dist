@@ -5,19 +5,13 @@
             "src"
         ]
     },
-    "phpUnit": {
-        "customPath": "."
-    },
     "logs": {
         "text": "build/mutator/infection.log",
         "summary": "build/mutator/summary.log",
         "debug": "build/mutator/debug.log",
         "perMutator": "build/mutator/per-mutator.md",
-        "badge": {
-            "branch": "master"
-        }
     },
-    "testFramework":"phpspec",
+    "testFramework":"phpunit",
     "mutators": {
         "@default": true
     }

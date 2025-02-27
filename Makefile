@@ -1,8 +1,16 @@
-test:                                                                                             ## Run phpunit tests
+infection.phar:
+	wget https://github.com/infection/infection/releases/download/0.29.12/infection.phar
+	chmod a+x infection.phar
+
+PHONY: test
+test:
 	vendor/bin/phpunit
+	vendor/bin/behat -f progress
 
-test-mutator:
-	infection --threads=4 --min-msi=60 --only-covered --log-verbosity=2 --test-framework=phpunit
+PHONY: test-mutator
+test-mutator: infection.phar
+	./infection.phar
 
+PHONY: phpstan
 phpstan:
 	vendor/bin/phpstan analyse -l max src
