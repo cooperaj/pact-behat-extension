@@ -4,6 +4,17 @@ orbs:
   codecov: codecov/codecov@1.0.5
 
 commands:
+  install_test_dependencies:
+    description: Install OS dependencies for PHP testing and coverage reporting
+    steps:
+      - run:
+          command: |
+            sudo apt update
+            sudo apt install libffi-dev
+            sudo -E install-php-extensions xdebug ffi
+            sudo docker-php-ext-enable xdebug
+  
+
   build_test:
     description: Install dependencies and run tests
     steps:
@@ -38,20 +49,14 @@ jobs:
     docker:
       - image: cimg/php:<< parameters.php_v>>
     steps:
-      - run:
-          command: |
-            sudo apt update && sudo apt install libffi-dev
-            sudo -E install-php-extensions xdebug ffi
+      - install_test_dependencies
       - build_test
 
   build_test_84:
     docker:
       - image: cimg/php:8.4
     steps:
-      - run:
-          command: |
-            sudo apt update && sudo apt install libffi-dev
-            sudo -E install-php-extensions xdebug ffi
+      - install_test_dependencies
       - build_test
       - persist_to_workspace:
           root: /home/circleci/project
