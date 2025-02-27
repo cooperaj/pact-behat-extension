@@ -38,14 +38,14 @@ jobs:
     docker:
       - image: cimg/php:<< parameters.php_v>>
     steps:
-      - run: sudo pecl install xdebug-stable
+      - run: sudo -E install-php-extensions xdebug ffi
       - build_test
 
   build_test_84:
     docker:
       - image: cimg/php:8.4
     steps:
-      - run: sudo pecl install xdebug-stable
+      - run: sudo -E install-php-extensions xdebug ffi
       - build_test
       - persist_to_workspace:
           root: /home/circleci/project
