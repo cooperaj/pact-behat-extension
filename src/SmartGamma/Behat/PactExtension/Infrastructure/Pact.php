@@ -4,75 +4,56 @@ declare(strict_types=1);
 
 namespace SmartGamma\Behat\PactExtension\Infrastructure;
 
-use Exception;
-use GuzzleHttp\Exception\ClientException;
+use PhpPact\Config\PactConfigInterface;
 use PhpPact\Consumer\InteractionBuilder;
-use PhpPact\Standalone\MockService\MockServer;
 use PhpPact\Standalone\MockService\MockServerConfig;
-use PhpPact\Standalone\MockService\MockServerEnvConfig;
-use PhpPact\Standalone\MockService\Service\MockServerHttpService;
-use SmartGamma\Behat\PactExtension\Infrastructure\Factory\BrokerHttpClientFactory;
+use PhpPact\Standalone\MockService\MockServerConfigInterface;
+use SmartGamma\Behat\PactExtension\Extension;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
-use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory;
-use SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 
-use function end;
-use function exec;
-use function explode;
-use function getenv;
-use function in_array;
-use function is_dir;
-
+/**
+ * @phpstan-import-type CommonConfiguration from Extension
+ * @phpstan-import-type ProviderConfiguration from Extension
+ */
 class Pact
 {
-    private MockServerFactory $mockServerFactory;
     private InteractionBuilderFactory $interactionBuilderFactory;
-    private MockServerHttpServiceFactory $mockServerHttpServiceFactory;
     private InteractionCompositor $interactionCompositor;
-    private BrokerHttpClientFactory $brokerHttpClientFactory;
 
-    private array $config = [];
-    private array $providersConfig = [];
-    private string $tag;
+    /** @psalm-var CommonConfiguration */
+    private array $config;
 
-    /** @var MockServer[] $servers */
-    private array $servers = [];
+    /** @psalm-var ProviderConfiguration */
+    private array $providersConfig;
 
-    /** @var int[] $startedServers */
-    private array $startedServers = [];
-
-    /** @var MockServerConfig[] $mockServerConfigs */
+    /** @var MockServerConfigInterface[] $mockServerConfigs */
     private array $mockServerConfigs = [];
-
-    /** @var MockServerHttpService[] $mockServerHttpServices */
-    private array $mockServerHttpServices = [];
 
     /** @var InteractionBuilder[] $builders */
     private array $builders = [];
 
+    /**
+     * @param InteractionBuilderFactory     $interactionBuilderFactory
+     * @param InteractionCompositor         $interactionCompositor
+     * @param array                         $config
+     * @phpstan-param CommonConfiguration   $config
+     * @param array                         $providersConfig
+     * @phpstan-param ProviderConfiguration $providersConfig
+     */
     public function __construct(
-        MockServerFactory $mockServerFactory,
         InteractionBuilderFactory $interactionBuilderFactory,
-        MockServerHttpServiceFactory $mockServerHttpServiceFactory,
         InteractionCompositor $interactionCompositor,
-        BrokerHttpClientFactory $brokerHttpClientFactory,
         array $config,
         array $providersConfig
     ) {
-        $this->mockServerFactory            = $mockServerFactory;
         $this->interactionBuilderFactory    = $interactionBuilderFactory;
-        $this->mockServerHttpServiceFactory = $mockServerHttpServiceFactory;
         $this->interactionCompositor        = $interactionCompositor;
-        $this->brokerHttpClientFactory      = $brokerHttpClientFactory;
         $this->config                       = $config;
         $this->providersConfig              = $providersConfig;
-        $this->tag                          = $this->getPactTag();
         $this->registerMockServerConfigs();
-        $this->registerMockServerHttpServices();
-        $this->registerServers();
         $this->registerBuilders();
     }
 
@@ -84,22 +65,6 @@ class Pact
         }
     }
 
-    private function registerMockServerHttpServices(): void
-    {
-        foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->mockServerHttpServices[$providerName] =
-                $this->mockServerHttpServiceFactory->create($mockServerConfig);
-        }
-    }
-
-    private function registerServers(): void
-    {
-        foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            $this->servers[$providerName] = $this->mockServerFactory->create($mockServerConfig);
-        }
-    }
-
-
     private function registerBuilders(): void
     {
         foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
@@ -110,126 +75,26 @@ class Pact
     /**
      * @param string[] $providerConfig
      *
-     * @return MockServerConfig
+     * @return MockServerConfigInterface
      */
-    private function createMockServerConfig(array $providerConfig): MockServerConfig
+    private function createMockServerConfig(array $providerConfig): MockServerConfigInterface
     {
         $config = new MockServerConfig();
         $config
             ->setHost($providerConfig['PACT_MOCK_SERVER_HOST'])
             ->setPort((int) $providerConfig['PACT_MOCK_SERVER_PORT'])
-            ->setCors($this->config['PACT_CORS'])
-            ->setHealthCheckTimeout((int) $this->config['PACT_MOCK_SERVER_HEALTH_CHECK_TIMEOUT']);
-        $config
             ->setProvider($providerConfig['PACT_PROVIDER_NAME'])
             ->setConsumer($this->config['PACT_CONSUMER_NAME'])
             ->setPactDir($this->config['PACT_OUTPUT_DIR'])
-            ->setPactSpecificationVersion(MockServerEnvConfig::DEFAULT_SPECIFICATION_VERSION);
+            ->setPactSpecificationVersion(PactConfigInterface::DEFAULT_SPECIFICATION_VERSION);
 
         return $config;
     }
 
-    /**
-     * @param string $consumerVersion
-     * @param bool $externalMockService Set to true when running an external mocking service
-     *
-     * @return bool
-     */
-    public function finalize(string $consumerVersion, bool $externalMockService = false): bool
-    {
-        foreach ($this->mockServerConfigs as $providerName => $mockServerConfig) {
-            if (!$externalMockService && !isset($this->startedServers[$providerName])) {
-                echo 'Ignoring ' . $providerName . ' as it was not started in the suite';
-                continue;
-            }
-
-            if (!isset($this->config['PACT_BROKER_URI'])) {
-                echo 'PACT_BROKER_URI environment variable was not set. Skipping PACT file upload for:' . $providerName;
-                continue;
-            }
-
-            $json = $this->getPactJson($providerName);
-            $this->publishToBroker($mockServerConfig, $json, $consumerVersion);
-        }
-
-        return true;
-    }
-
-    private function getPactJson(string $providerName): string
-    {
-        $this->mockServerHttpServices[$providerName]->verifyInteractions();
-
-        return $this->mockServerHttpServices[$providerName]->getPactJson();
-    }
-
-    private function publishToBroker(MockServerConfig $config, string $json, string $consumerVersion): void
-    {
-        $brokerHttpService = $this->brokerHttpClientFactory->create();
-
-        try {
-            $brokerHttpService->publishJson($json, $consumerVersion);
-            $brokerHttpService->tag($config->getConsumer(), $consumerVersion, $this->tag);
-            echo 'Pact file has been uploaded to the Broker successfully with version ' . $consumerVersion . ' by tag:'
-                . $this->tag;
-        } catch (ClientException $e) {
-            echo 'Error: ' . $e->getMessage();
-        }
-    }
-
-    private function getPactTag(): string
-    {
-        if (!($tag = getenv('PACT_CONSUMER_TAG'))) {
-            $tag = $this->resolvePactTag($this->getCurrentGitBranch());
-        }
-
-        return $tag;
-    }
-
-    private function getCurrentGitBranch(): string
-    {
-        $branch = 'none';
-        if (is_dir(__DIR__ . '/.git')) {
-            $output = exec('git symbolic-ref HEAD');
-            $parts  = explode('/', $output);
-            $branch = end($parts);
-        }
-
-        return $branch;
-    }
-
-    private function resolvePactTag(string $branch): string
-    {
-        return in_array($branch, ['develop', 'master'], true) ? 'master' : $branch;
-    }
-
-    /**
-     * @param string $providerName
-     *
-     * @return int
-     * @throws Exception
-     */
-    public function startServer(string $providerName): int
-    {
-        if (isset($this->startedServers[$providerName])) {
-            return $this->startedServers[$providerName];
-        }
-
-        return $this->startedServers[$providerName] = $this->servers[$providerName]->start();
-    }
-
     public function verifyInteractions(): bool
     {
-        foreach ($this->mockServerHttpServices as $providerName => $val) {
-            $this->builders[$providerName]->verify();
-        }
-
-        return true;
-    }
-
-    public function cleanupInteractions(): bool
-    {
-        foreach ($this->mockServerHttpServices as $providerName => $val) {
-            $this->mockServerHttpServices[$providerName]->deleteAllInteractions();
+        foreach ($this->builders as $builder) {
+            $builder->verify();
         }
 
         return true;
@@ -242,6 +107,7 @@ class Pact
         $request  = $this->interactionCompositor->createRequestFromDTO($requestDTO);
         $response = $this->interactionCompositor->createResponseFromDTO($responseDTO);
 
+        $this->builders[$providerName]->newInteraction();
         $this->builders[$providerName]
             ->given($providerState)
             ->uponReceiving($requestDTO->getDescription())

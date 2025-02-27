@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\SmartGamma\Behat\PactExtension\Context;
 
+use Behat\Behat\Hook\Scope\ScenarioScope;
+use Behat\Gherkin\Node\PyStringNode;
+use Behat\Gherkin\Node\ScenarioInterface as Scenario;
+use Behat\Gherkin\Node\TableNode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Exception;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Behat\Gherkin\Node\PyStringNode;
-use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Hook\Scope\ScenarioScope;
-use Behat\Gherkin\Node\ScenarioInterface as Scenario;
-use Behat\Testwork\Environment\Environment;
-use Behat\Testwork\Hook\Scope\AfterSuiteScope;
-use Behat\Testwork\Specification\SpecificationIterator;
-use Behat\Testwork\Tester\Result\TestResult;
+use PHPUnit\Framework\TestCase;
 use SmartGamma\Behat\PactExtension\Context\Authenticator;
 use SmartGamma\Behat\PactExtension\Context\PactContext;
 use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
@@ -240,21 +236,6 @@ final class PactContextTest extends TestCase
     }
 
     #[Test]
-    public function startMockServerForApi(): void
-    {
-        $this->pactMock
-            ->expects($this->once())
-            ->method('startServer')
-            ->with(self::PROVIDER_NAME)
-            ->willReturn(1);
-
-        $this->assertEquals(
-            1,
-            $this->pactContext->mockedApiProviderIsAvailable(self::PROVIDER_NAME)
-        );
-    }
-
-    #[Test]
     public function registersEntityForTheProviderState(): void
     {
         $this->providerStateMock->expects($this->once())->method('addInjectorState');
@@ -325,51 +306,10 @@ final class PactContextTest extends TestCase
         $this->pactMock
             ->expects($verifyExpected ? $this->once() : $this->never())
             ->method('verifyInteractions');
-        $this->pactMock->expects($this->once())->method('cleanupInteractions')->willReturn(true);
 
         $this->providerStateMock->expects($this->once())->method('clearStates');
 
         $this->pactContext->setupBehatTags($scopeMock);
         $this->pactContext->verifyInteractions();
-    }
-
-    #[Test]
-    public function finalizesPactOnTestsSuccess(): void
-    {
-        $environmentMock = $this->createMock(Environment::class);
-        $iteratorMock    = $this->createMock(SpecificationIterator::class);
-        $testResultMock  = $this->createMock(TestResult::class);
-
-        $testResultMock->expects($this->once())->method('isPassed')->willReturn(true);
-        $this->pactMock->expects($this->once())->method('finalize');
-
-        $this->pactMock->expects($this->once())->method('getConsumerVersion')->willReturn('1.0.0');
-
-        $this->pactContext->teardown(
-            new AfterSuiteScope(
-                $environmentMock,
-                $iteratorMock,
-                $testResultMock
-            )
-        );
-    }
-
-    #[Test]
-    public function ignoresFinalizesPactOnTestsFailed(): void
-    {
-        $environmentMock = $this->createMock(Environment::class);
-        $iteratorMock    = $this->createMock(SpecificationIterator::class);
-        $testResultMock  = $this->createMock(TestResult::class);
-
-        $testResultMock->expects($this->once())->method('isPassed')->willReturn(false);
-        $this->pactMock->expects($this->never())->method('finalize');
-
-        $this->pactContext->teardown(
-            new AfterSuiteScope(
-                $environmentMock,
-                $iteratorMock,
-                $testResultMock
-            )
-        );
     }
 }

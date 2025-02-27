@@ -12,9 +12,25 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
- * @phpstan-type Configuration array{
- *     common: mixed[],
- *     providers: mixed[],
+ * @phpstan-type CommonConfiguration array{
+ *     PACT_CONSUMER_VERSION: string,
+ *     PACT_CONSUMER_NAME: string,
+ *     PACT_OUTPUT_DIR: string,
+ * }
+ *
+ * @phpstan-type ProviderConfiguration array{
+ *     array{
+ *         PACT_PROVIDER_NAME: string,
+ *         PACT_MOCK_SERVER_HOST: string,
+ *         PACT_MOCK_SERVER_PORT: string,
+ *     },
+ * }
+ *
+ * @phpstan-type ExtensionConfiguration array{
+ *     common: CommonConfiguration,
+ *     providers: array{
+ *         string[],
+ *     },
  * }
  */
 class Extension implements ExtensionInterface
@@ -32,16 +48,14 @@ class Extension implements ExtensionInterface
                     ->prototype('scalar')->end()
                 ->end()
                 ->arrayNode('providers')
-                    ->prototype('scalar')->end()
+                    ->prototype('variable')->end()
                 ->end()
            ->end();
     }
 
     /**
-     * @param ContainerBuilder      $container
-     * @param mixed[]               $config
-     * @phpstan-param Configuration $config
-     *
+     * @param ContainerBuilder       $container
+     * @param ExtensionConfiguration $config
      * @return void
      * @throws Exception
      */
@@ -59,9 +73,7 @@ class Extension implements ExtensionInterface
     }
 
     /**
-     * @param mixed[]               $config
-     * @phpstan-param Configuration $config
-     *
+     * @param ExtensionConfiguration $config
      * @return void
      * @throws Exception
      */
@@ -69,7 +81,7 @@ class Extension implements ExtensionInterface
     {
         try {
             $reflex = new ReflectionClassConstant('\App\Kernel', 'PACT_CONSUMER_VERSION');
-            $config['common']['PACT_CONSUMER_VERSION'] = $reflex->getValue();
+            $config['common']['PACT_CONSUMER_VERSION'] = (string) $reflex->getValue();
         } catch (Exception $e) {
             if (false === isset($config['common']['PACT_CONSUMER_VERSION'])) {
                 throw new Exception('You should define PACT_CONSUMER_VERSION', 0, $e);
@@ -78,9 +90,8 @@ class Extension implements ExtensionInterface
     }
 
     /**
-     * @param mixed[]               $originalConfig
-     *
-     * @return         mixed[]
+     * @param array<string[]> $originalConfig
+     * @return ProviderConfiguration
      */
     private function normalizeProvidersConfig(array $originalConfig): array
     {

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\SmartGamma\Behat\PactExtension\Context\Initializer;
 
+use Behat\Behat\Context\Context;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Behat\Behat\Context\Context;
 use SmartGamma\Behat\PactExtension\Context\Authenticator;
 use SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer;
 use SmartGamma\Behat\PactExtension\Context\PactContextInterface;

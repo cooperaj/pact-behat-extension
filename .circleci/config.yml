@@ -22,10 +22,12 @@ commands:
           paths:
             - ./vendor
 
-      - run: php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-clover ./build/clover.xml --log-junit ./build/junit.xml
+      - run: php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-clover ./build/clover.xml --log-junit ./build/test-results/unit.xml
+
+      - run: php ./vendor/bin/behat -f junit -o ./build/test-results/feature.xml
 
       - store_test_results:
-          path: ./build/junit.xml
+          path: ./build/test-results/unit.xml
 
 jobs:
 

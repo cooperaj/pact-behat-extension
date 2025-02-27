@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
+use Behat\Gherkin\Node\TableNode;
+use PhpPact\Consumer\Model\ConsumerRequest;
+use PhpPact\Consumer\Model\ProviderResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use Behat\Gherkin\Node\TableNode;
-use PhpPact\Consumer\Model\ConsumerRequest;
-use PhpPact\Consumer\Model\ProviderResponse;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;

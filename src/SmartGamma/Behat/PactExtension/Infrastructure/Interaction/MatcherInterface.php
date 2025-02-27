@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 use Exception;
+use PhpPact\Consumer\Matcher\Model\Matcher\JsonFormattableInterface;
+use PhpPact\Consumer\Matcher\Model\MatcherInterface as PactPHPMatcherInterface;
 
 interface MatcherInterface
 {
@@ -23,73 +25,50 @@ interface MatcherInterface
      * @template T of bool|float|int|null|string
      * @param T $value
      *
-     * @return array{
-     *     contents: T,
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function like(mixed $value): array;
+    public function like(mixed $value): PactPHPMatcherInterface;
 
     /**
      * @param string $value
      *
-     * @return array{
-     *     data: mixed[],
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function dateTimeISO8601(string $value): array;
+    public function dateTimeISO8601(string $value): PactPHPMatcherInterface;
 
     /**
-     * @param mixed $value
+     * @template T of bool|float|int|null|string
+     * @param T $value
      *
-     * @return array{
-     *     contents: bool,
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function boolean(mixed $value): array;
+    public function boolean(mixed $value): PactPHPMatcherInterface;
 
     /**
      * @param string|int $value
      *
-     * @return array{
-     *     contents: int,
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function integer(string|int $value): array;
+    public function integer(string|int $value): PactPHPMatcherInterface;
 
     /**
      * @param string $value
      *
-     * @return array{
-     *     data: mixed[],
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function uuid(string $value): array;
+    public function uuid(string $value): PactPHPMatcherInterface;
 
     /**
      * @template T
      * @param T $object
      *
-     * @return array{
-     *     contents: T,
-     *     json_class: string,
-     *     ...
-     * }
+     * @return PactPHPMatcherInterface
      * @throws Exception
      */
-    public function eachLike(mixed $object): array;
+    public function eachLike(mixed $object): PactPHPMatcherInterface;
 }

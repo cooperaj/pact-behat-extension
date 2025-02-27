@@ -7,24 +7,8 @@ services:
     arguments:
       - '@pact.matcher'
 
-  pact.broker_http_client.factory:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\BrokerHttpClientFactory
-    arguments:
-      - '%pact.common.config%'
-
-  pact.mock_server.factory:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerFactory
-
   pact.interaction_builder.factory:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory
-
-  pact.http.client:
-    class: PhpPact\Http\GuzzleClient
-
-  pact.mock_server_http_service.factory:
-    class: SmartGamma\Behat\PactExtension\Infrastructure\Factory\MockServerHttpServiceFactory
-    arguments:
-      - '@pact.http.client'
 
   pact.compositor:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor
@@ -34,19 +18,16 @@ services:
   pact.infrastructure:
     class: SmartGamma\Behat\PactExtension\Infrastructure\Pact
     arguments:
-      - '@pact.mock_server.factory'
       - '@pact.interaction_builder.factory'
-      - '@pact.mock_server_http_service.factory'
       - '@pact.compositor'
-      - '@pact.broker_http_client.factory'
       - '%pact.common.config%'
       - '%pact.providers.config%'
 
-  pact.provider.authenticator:
-    class:  SmartGamma\Behat\PactExtension\Context\Authenticator
-
   pact.provider.state:
     class: SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState
+
+  pact.provider.authenticator:
+    class:  SmartGamma\Behat\PactExtension\Context\Authenticator
 
   pact.context.initializer:
     class: SmartGamma\Behat\PactExtension\Context\Initializer\PactInitializer

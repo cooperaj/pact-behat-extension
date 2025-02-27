@@ -9,11 +9,9 @@ use Behat\Behat\Hook\Scope\ScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Hook\AfterScenario;
-use Behat\Hook\AfterSuite;
 use Behat\Hook\BeforeScenario;
 use Behat\Hook\BeforeStep;
 use Behat\Step\Given;
-use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use SmartGamma\Behat\PactExtension\Exception\InvalidResponseObjectNameFormat;
 use SmartGamma\Behat\PactExtension\Exception\NoConsumerRequestDefined;
 use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\InjectorStateDTO;
@@ -71,7 +69,7 @@ class PactContext implements PactContextInterface
     }
 
     #[BeforeScenario]
-    public static function setupBehatStepName(ScenarioScope $step): void
+    public static function setupBehatScenarioName(ScenarioScope $step): void
     {
         if ($step->getScenario()->getTitle()) {
             self::$providerState->setDefaultPlainTextState($step->getScenario()->getTitle());
@@ -79,7 +77,7 @@ class PactContext implements PactContextInterface
     }
 
     #[BeforeStep]
-    public static function setupBehatScenarioName(StepScope $step): void
+    public static function setupBehatStepName(StepScope $step): void
     {
         self::$stepName = $step->getStep()->getText();
     }
@@ -213,12 +211,6 @@ class PactContext implements PactContextInterface
         return true;
     }
 
-    #[Given(':providerName API is available')]
-    public function mockedApiProviderIsAvailable(string $providerName): int
-    {
-        return self::$pact->startServer($providerName);
-    }
-
     #[Given(':entity on the provider :providerName:')]
     public function onTheProvider(string $entity, string $providerName, TableNode $table): void
     {
@@ -256,27 +248,9 @@ class PactContext implements PactContextInterface
     #[AfterScenario]
     public function verifyInteractions(): void
     {
-        try {
-            if (in_array('pact', self::$tags, true)) {
-                self::$pact->verifyInteractions();
-            }
-        } finally {
-            $result = self::$pact->cleanupInteractions();
-            if (!$result) {
-                echo 'Failed to cleanup PACT mock server interactions';
-            }
+        if (in_array('pact', self::$tags, true)) {
+            self::$pact->verifyInteractions();
         }
-    }
-
-    #[AfterSuite]
-    public static function teardown(AfterSuiteScope $scope): bool
-    {
-        if (!$scope->getTestResult()->isPassed()) {
-            echo 'A test has failed. Skipping PACT file upload.';
-            return false;
-        }
-
-        return self::$pact->finalize(self::$pact->getConsumerVersion());
     }
 
     /**
