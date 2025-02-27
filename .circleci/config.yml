@@ -38,14 +38,20 @@ jobs:
     docker:
       - image: cimg/php:<< parameters.php_v>>
     steps:
-      - run: sudo -E install-php-extensions xdebug ffi
+      - run:
+          command: |
+            sudo apt-get install libffi libffi-dev
+            sudo -E install-php-extensions xdebug ffi
       - build_test
 
   build_test_84:
     docker:
       - image: cimg/php:8.4
     steps:
-      - run: sudo -E install-php-extensions xdebug ffi
+      - run:
+          command: |
+            sudo apt-get install libffi libffi-dev
+            sudo -E install-php-extensions xdebug ffi
       - build_test
       - persist_to_workspace:
           root: /home/circleci/project
