@@ -40,7 +40,7 @@ jobs:
     steps:
       - run:
           command: |
-            sudo apt-get install libffi8
+            sudo apt-get install libffi-dev
             sudo -E install-php-extensions xdebug ffi
       - build_test
 
@@ -50,7 +50,7 @@ jobs:
     steps:
       - run:
           command: |
-            sudo apt-get install libffi8
+            sudo apt-get install libffi-dev
             sudo -E install-php-extensions xdebug ffi
       - build_test
       - persist_to_workspace:
