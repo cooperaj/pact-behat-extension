@@ -40,6 +40,7 @@ jobs:
     steps:
       - run:
           command: |
+            sudo apt-cache search libffi
             sudo apt-get install libffi libffi-dev
             sudo -E install-php-extensions xdebug ffi
       - build_test
