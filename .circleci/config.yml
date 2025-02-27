@@ -35,7 +35,7 @@ commands:
 
       - run: php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-clover ./build/clover.xml --log-junit ./build/test-results/unit.xml
 
-      - run: php ./vendor/bin/behat -f junit -o ./build/test-results/feature.xml
+      - run: php ./vendor/bin/behat -f junit -o ./build/test-results/feature.xml -f progress -o std
 
       - store_test_results:
           path: ./build/test-results/unit.xml
