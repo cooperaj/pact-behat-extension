@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<ruleset name="CodeStandard">
+
+    <description>PACT Behat Extension coding standard</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="cache" value=".phpcs-cache"/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="80"/>
+
+    <!-- Show progress -->
+    <arg value="p"/>
+
+    <file>./src</file>
+    <file>./tests/unit</file>
+    <file>./tests/features/contexts</file>
+
+    <rule ref="PSR12" />
+
+    <rule ref="Generic.Formatting.MultipleStatementAlignment">
+        <properties>
+            <property name="maxPadding" value="50" />
+            <property name="error" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="Generic.PHP.DeprecatedFunctions" />
+
+    <rule ref="Squiz.Strings.DoubleQuoteUsage"/>
+
+    <rule ref="SlevomatCodingStandard.Classes.RequireConstructorPropertyPromotion" />
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall" />
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration" />
+    <rule ref="SlevomatCodingStandard.Variables.UselessVariable" />
+    <rule ref="SlevomatCodingStandard.Commenting.DocCommentSpacing">
+        <properties>
+            <property name="linesCountBeforeFirstContent" value="0"/>
+            <property name="linesCountAfterLastContent" value="0"/>
+            <property name="linesCountBetweenDescriptionAndAnnotations" value="1"/>
+            <property name="linesCountBetweenAnnotationsGroups" value="1"/>
+            <property name="annotationsGroups" type="array">
+                <element value="
+                    @internal,
+                    @deprecated,
+                "/>
+                <element value="
+                    @link,
+                    @uses,
+                    @see,
+                "/>
+                <element value="
+                    @param,
+                    @phpstan-param,
+                "/>
+                <element value="
+                    @return,
+                    @phpstan-return,
+                    @throws,
+                "/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Commenting.EmptyComment" />
+    <rule ref="SlevomatCodingStandard.Commenting.UselessFunctionDocComment" />
+
+    <rule ref="WebimpressCodingStandard.Arrays.DoubleArrow">
+        <properties>
+            <property name="maxPadding" value="50"/>
+        </properties>
+    </rule>
+    <rule ref="WebimpressCodingStandard.Arrays.Format"/>
+    <rule ref="WebimpressCodingStandard.Arrays.TrailingArrayComma"/>
+    <rule ref="WebimpressCodingStandard.PHP.DeclareStrictTypes"/>
+
+</ruleset>
