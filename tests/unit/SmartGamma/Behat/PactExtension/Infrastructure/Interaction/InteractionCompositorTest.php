@@ -24,8 +24,8 @@ final class InteractionCompositorTest extends TestCase
 {
     private InteractionCompositor $interactionCompositor;
 
-    const PROVIDER_NAME= 'some_provider_name';
-    const PROVIDER_API_PATH = '/api/test';
+    private const PROVIDER_NAME     = 'some_provider_name';
+    private const PROVIDER_API_PATH = '/api/test';
 
     protected function setUp(): void
     {
@@ -37,9 +37,24 @@ final class InteractionCompositorTest extends TestCase
     public function createsBasicConsumerRequest(): void
     {
         $dto = new InteractionRequestDTO(
-            self::PROVIDER_NAME,
-            '',
-            self::PROVIDER_API_PATH
+            providerName: self::PROVIDER_NAME,
+            description:  '',
+            uri:          self::PROVIDER_API_PATH,
+        );
+
+        $this->assertInstanceOf(ConsumerRequest::class, $this->interactionCompositor->createRequestFromDTO($dto));
+    }
+
+    #[Test]
+    public function createsConsumerRequestWithQueryParameters(): void
+    {
+        $dto = new InteractionRequestDTO(
+            providerName: self::PROVIDER_NAME,
+            description:  '',
+            uri:          self::PROVIDER_API_PATH,
+            query:        [
+                'page' => '1',
+            ],
         );
 
         $this->assertInstanceOf(ConsumerRequest::class, $this->interactionCompositor->createRequestFromDTO($dto));
@@ -48,7 +63,7 @@ final class InteractionCompositorTest extends TestCase
     #[Test]
     public function createsBasicProviderResponse(): void
     {
-        $dto = new InteractionResponseDTO(200);
+        $dto = new InteractionResponseDTO(status: 200);
 
         $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
@@ -61,10 +76,10 @@ final class InteractionCompositorTest extends TestCase
                 ['parameter', 'value'],
                 ['test1', 'test1value'],
                 ['test2', '1'],
-            ]
+            ],
         );
 
-        $dto = new InteractionResponseDTO(200, $response->getHash());
+        $dto = new InteractionResponseDTO(status: 200, rawParameters: $response->getHash());
 
         $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
@@ -77,18 +92,22 @@ final class InteractionCompositorTest extends TestCase
                 ['parameter', 'value', 'match'],
                 ['test1', 'test1value', ''],
                 ['test2', '1', ''],
-                ['test3', '<other>', 'eachLike']
-            ]
+                ['test3', '<other>', 'eachLike'],
+            ],
         );
 
         $matchingObjects = [
             '<other>' => [
                 'test1' => ['test1value', ''],
                 'test2' => ['1', ''],
-            ]
+            ],
         ];
 
-        $dto = new InteractionResponseDTO(200, $response->getHash(), $matchingObjects);
+        $dto = new InteractionResponseDTO(
+            status:                   200,
+            rawParameters:            $response->getHash(),
+            matchingObjectStructures: $matchingObjects,
+        );
 
         $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
@@ -101,10 +120,10 @@ final class InteractionCompositorTest extends TestCase
                 ['parameter', 'value', 'match'],
                 ['test1', 'test1value', 'like'],
                 ['test2', 'true', 'boolean'],
-            ]
+            ],
         );
 
-        $dto = new InteractionResponseDTO(200, $response->getHash());
+        $dto = new InteractionResponseDTO(status: 200, rawParameters: $response->getHash());
 
         $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }
@@ -112,11 +131,11 @@ final class InteractionCompositorTest extends TestCase
     #[Test]
     public function createsStdClassBasedProviderResponse(): void
     {
-        $response = new stdClass();
+        $response        = new stdClass();
         $response->test1 = 'test1Value';
         $response->test2 = true;
 
-        $dto = new InteractionResponseDTO(200, $response);
+        $dto = new InteractionResponseDTO(status: 200, rawParameters: $response);
 
         $this->assertInstanceOf(ProviderResponse::class, $this->interactionCompositor->createResponseFromDTO($dto));
     }

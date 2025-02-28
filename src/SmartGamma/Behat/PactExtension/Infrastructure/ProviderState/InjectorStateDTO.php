@@ -6,13 +6,6 @@ namespace SmartGamma\Behat\PactExtension\Infrastructure\ProviderState;
 
 class InjectorStateDTO
 {
-    private string $providerName;
-
-    private string $entityName;
-
-    /** @var mixed[] */
-    private array $parameters;
-
     private string $entityDescription;
 
     /**
@@ -22,15 +15,12 @@ class InjectorStateDTO
      * @param string|null $entityDescription
      */
     public function __construct(
-        string $providerName,
-        string $entityName,
-        array $parameters = [],
-        ?string $entityDescription = null
+        private string $providerName,
+        private string $entityName,
+        private array $parameters = [],
+        ?string $entityDescription = null,
     ) {
-        $this->providerName      = $providerName;
-        $this->entityName        = $entityName;
         $this->entityDescription = $entityDescription ? '(' . $entityDescription . ')' : '';
-        $this->parameters        = $parameters;
     }
 
     public function getProviderName(): string

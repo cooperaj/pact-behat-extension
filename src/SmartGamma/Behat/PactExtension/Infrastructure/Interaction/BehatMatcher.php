@@ -52,10 +52,11 @@ class BehatMatcher implements MatcherInterface
     }
 
     /**
-     * @template T of bool|float|int|null|string
      * @param T $value
      *
      * @return T
+     *
+     * @template T of bool|float|int|null|string
      */
     private function normaliseValue(mixed $value): mixed
     {

@@ -15,7 +15,6 @@ class Authenticator
      * @return array{
      *     Authorization: string
      * }
-     *
      * @throws NoAuthTypeSupported
      */
     public function authorizeConsumerRequestToProvider(string $authType, string $credentials): array

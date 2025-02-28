@@ -21,18 +21,18 @@ final class PactInitializerTest extends TestCase
 
     protected function setUp(): void
     {
-        $pactMock = $this->createMock(Pact::class);
-        $providerStateMock = $this->createMock(ProviderState::class);
-        $authenticatorMock = $this->createMock(Authenticator::class);
-        $this->pactInitializer   = new PactInitializer(
+        $pactMock              = $this->createMock(Pact::class);
+        $providerStateMock     = $this->createMock(ProviderState::class);
+        $authenticatorMock     = $this->createMock(Authenticator::class);
+        $this->pactInitializer = new PactInitializer(
             $pactMock,
             $providerStateMock,
-            $authenticatorMock
+            $authenticatorMock,
         );
     }
 
     #[Test]
-    function supportsPactContexts(): void
+    public function supportsPactContexts(): void
     {
         $contextMock = $this->createMock(PactContextInterface::class);
 
@@ -40,7 +40,7 @@ final class PactInitializerTest extends TestCase
     }
 
     #[Test]
-    function notSupportsOtherBehatContexts(): void
+    public function notSupportsOtherBehatContexts(): void
     {
         $contextMock = $this->createMock(Context::class);
 

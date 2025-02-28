@@ -6,14 +6,8 @@ namespace SmartGamma\Behat\PactExtension\Infrastructure\ProviderState;
 
 class PlainTextStateDTO
 {
-    private string $providerName;
-
-    private string $description;
-
-    public function __construct(string $providerName, string $description)
+    public function __construct(private string $providerName, private string $description)
     {
-        $this->providerName = $providerName;
-        $this->description  = $description;
     }
 
     public function getProviderName(): string

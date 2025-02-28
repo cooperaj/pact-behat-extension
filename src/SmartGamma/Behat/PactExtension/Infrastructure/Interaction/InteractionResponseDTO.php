@@ -8,26 +8,16 @@ use stdClass;
 
 class InteractionResponseDTO
 {
-    private int $status;
-
-    /** @var mixed[]|stdClass */
-    private array|stdClass $rawParameters;
-
-    /** @var mixed[] */
-    private array $matchingObjectStructures = [];
-
     /**
-     * InteractionResponseDTO constructor.
-     *
-     * @param int              $status
-     * @param mixed[]|stdClass $rawParameters
-     * @param mixed[]          $matchingObjectStructures
+     * @param int                                     $status
+     * @param array<string, scalar|string[]>|stdClass $rawParameters
+     * @param array<string, string[]>                 $matchingObjectStructures
      */
-    public function __construct(int $status, array|stdClass $rawParameters = [], array $matchingObjectStructures = [])
-    {
-        $this->status = $status;
-        $this->rawParameters = $rawParameters;
-        $this->matchingObjectStructures = $matchingObjectStructures;
+    public function __construct(
+        private readonly int $status,
+        private readonly array|stdClass $rawParameters = [],
+        private readonly array $matchingObjectStructures = [],
+    ) {
     }
 
     public function getStatus(): int
@@ -36,7 +26,7 @@ class InteractionResponseDTO
     }
 
     /**
-     * @return mixed[]|stdClass
+     * @return array<string, scalar|string[]>|stdClass
      */
     public function getRawParameters(): array|stdClass
     {
@@ -45,7 +35,8 @@ class InteractionResponseDTO
 
     /**
      * @param string $objectName
-     * @return mixed[]
+     *
+     * @return string[]
      */
     public function getMatchingObjectStructure(string $objectName): array
     {

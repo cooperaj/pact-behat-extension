@@ -13,21 +13,11 @@ use SmartGamma\Behat\PactExtension\Infrastructure\ProviderState\ProviderState;
 
 class PactInitializer implements ContextInitializer
 {
-    private Pact $pact;
-
-    private ProviderState $providerState;
-
-    private Authenticator $authenticator;
-
     public function __construct(
-        Pact $pact,
-        ProviderState $providerState,
-        Authenticator $authenticator
-    )
-    {
-        $this->pact          = $pact;
-        $this->providerState = $providerState;
-        $this->authenticator = $authenticator;
+        private Pact $pact,
+        private ProviderState $providerState,
+        private Authenticator $authenticator,
+    ) {
     }
 
     public function supports(object $context): bool

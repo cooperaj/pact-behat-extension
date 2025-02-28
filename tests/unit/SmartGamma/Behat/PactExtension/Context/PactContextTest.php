@@ -39,12 +39,12 @@ final class PactContextTest extends TestCase
     private MockObject|Authenticator $authenticatorMock;
     private PactContext $pactContext;
 
-    const PROVIDER_NAME       = 'provider_name';
-    const PROVIDER_STATE_TEXT = 'phpspec provider state';
+    private const PROVIDER_NAME       = 'provider_name';
+    private const PROVIDER_STATE_TEXT = 'phpspec provider state';
 
     protected function setUp(): void
     {
-        $this->pactMock = $this->createMock(Pact::class);
+        $this->pactMock          = $this->createMock(Pact::class);
         $this->providerStateMock = $this->createMock(ProviderState::class);
         $this->authenticatorMock = $this->createMock(Authenticator::class);
 
@@ -83,7 +83,7 @@ final class PactContextTest extends TestCase
             'GET',
             '/',
             200,
-            $response
+            $response,
         );
     }
 
@@ -104,7 +104,7 @@ final class PactContextTest extends TestCase
             'GET',
             '/',
             200,
-            $response
+            $response,
         );
     }
 
@@ -124,7 +124,7 @@ final class PactContextTest extends TestCase
             'GET',
             '/',
             'filter=1',
-            200
+            200,
         );
     }
 
@@ -146,7 +146,7 @@ final class PactContextTest extends TestCase
             '/',
             'filter=1',
             200,
-            $responseTable
+            $responseTable,
         );
     }
 
@@ -168,7 +168,7 @@ final class PactContextTest extends TestCase
             '/',
             'filter=1',
             200,
-            $response
+            $response,
         );
     }
 
@@ -182,8 +182,8 @@ final class PactContextTest extends TestCase
                 self::PROVIDER_NAME,
                 'GET',
                 '/',
-                $requestTable
-            )
+                $requestTable,
+            ),
         );
     }
 
@@ -222,7 +222,7 @@ final class PactContextTest extends TestCase
     {
         $table = new TableNode([1 => ['val1', 'val2']]);
         $this->assertTrue(
-            $this->pactContext->hasTheFollowingStructureInTheResponse('<objectName>', $table)
+            $this->pactContext->hasTheFollowingStructureInTheResponse('<objectName>', $table),
         );
     }
 
@@ -256,7 +256,7 @@ final class PactContextTest extends TestCase
             'MyEntity',
             self::PROVIDER_NAME,
             'Entity description',
-            $table
+            $table,
         );
     }
 
@@ -264,7 +264,7 @@ final class PactContextTest extends TestCase
     public function registersPlainTextProviderState(): void
     {
         $stateText = 'string line';
-        $state = new PyStringNode([$stateText], 0);
+        $state     = new PyStringNode([$stateText], 0);
 
         $this->providerStateMock
             ->expects($this->once())

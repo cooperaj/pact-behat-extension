@@ -6,18 +6,14 @@ namespace SmartGamma\Behat\PactExtension\Infrastructure\Interaction;
 
 use PhpPact\Consumer\Model\ConsumerRequest;
 use PhpPact\Consumer\Model\ProviderResponse;
-
 use stdClass;
 
 use function count;
 
 class InteractionCompositor
 {
-    private MatcherInterface $matcher;
-
-    public function __construct(MatcherInterface $matcher)
+    public function __construct(private MatcherInterface $matcher)
     {
-        $this->matcher = $matcher;
     }
 
     public function createRequestFromDTO(InteractionRequestDTO $requestDTO): ConsumerRequest
@@ -28,7 +24,7 @@ class InteractionCompositor
             ->setMethod($requestDTO->getMethod())
             ->setPath($requestDTO->getUri());
 
-        if (null !== $requestDTO->getQuery()) {
+        if (count($requestDTO->getQuery()) > 0) {
             $request->setQuery($requestDTO->getQuery());
         }
 
@@ -70,10 +66,10 @@ class InteractionCompositor
         if (is_array($parameters)) {
             return array_reduce(
                 $parameters,
-                function(array $carry, array $bodyItem) use ($responseDTO){
+                function (array $carry, array $bodyItem) use ($responseDTO) {
 
                     $matchType = !empty($bodyItem['match']) ? $bodyItem['match'] : MatcherInterface::EXACT_TYPE;
-                    $value = $matchType == MatcherInterface::EACH_LIKE_TYPE
+                    $value     = $matchType == MatcherInterface::EACH_LIKE_TYPE
                         ? $responseDTO->getMatchingObjectStructure($bodyItem['value'])
                         : $bodyItem['value'];
 
@@ -83,7 +79,7 @@ class InteractionCompositor
 
                     return $carry;
                 },
-                []
+                [],
             );
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SmartGamma\Behat\PactExtension;
 
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
@@ -17,15 +19,12 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  *     PACT_CONSUMER_NAME: string,
  *     PACT_OUTPUT_DIR: string,
  * }
- *
- * @phpstan-type ProviderConfiguration array{
- *     array{
+ * @phpstan-type ProviderConfiguration array<string, array{
  *         PACT_PROVIDER_NAME: string,
  *         PACT_MOCK_SERVER_HOST: string,
  *         PACT_MOCK_SERVER_PORT: string,
  *     },
- * }
- *
+ * >
  * @phpstan-type ExtensionConfiguration array{
  *     common: CommonConfiguration,
  *     providers: array{
@@ -35,9 +34,9 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  */
 class Extension implements ExtensionInterface
 {
-    const PARAMETER_NAME_PACT_PROVIDERS = 'pact.providers.config';
+    public const PARAMETER_NAME_PACT_PROVIDERS = 'pact.providers.config';
 
-    const PARAMETER_NAME_PACT_COMMON_CONFIG = 'pact.common.config';
+    public const PARAMETER_NAME_PACT_COMMON_CONFIG = 'pact.common.config';
 
     public function configure(ArrayNodeDefinition $builder): void
     {
@@ -56,6 +55,7 @@ class Extension implements ExtensionInterface
     /**
      * @param ContainerBuilder       $container
      * @param ExtensionConfiguration $config
+     *
      * @return void
      * @throws Exception
      */
@@ -64,7 +64,7 @@ class Extension implements ExtensionInterface
         $this->resolveConsumerVersion($config);
         $container->setParameter(
             self::PARAMETER_NAME_PACT_PROVIDERS,
-            $this->normalizeProvidersConfig($config['providers'])
+            $this->normalizeProvidersConfig($config['providers']),
         );
         $container->setParameter(self::PARAMETER_NAME_PACT_COMMON_CONFIG, $config['common']);
 
@@ -74,16 +74,20 @@ class Extension implements ExtensionInterface
 
     /**
      * @param ExtensionConfiguration $config
+     *
      * @return void
      * @throws Exception
      */
     private function resolveConsumerVersion(array &$config): void
     {
         try {
-            $reflex = new ReflectionClassConstant('\App\Kernel', 'PACT_CONSUMER_VERSION');
+            $reflex                                    = new ReflectionClassConstant(
+                '\App\Kernel',
+                'PACT_CONSUMER_VERSION',
+            );
             $config['common']['PACT_CONSUMER_VERSION'] = (string) $reflex->getValue();
         } catch (Exception $e) {
-            if (false === isset($config['common']['PACT_CONSUMER_VERSION'])) {
+            if (! isset($config['common']['PACT_CONSUMER_VERSION'])) {
                 throw new Exception('You should define PACT_CONSUMER_VERSION', 0, $e);
             }
         }
@@ -91,6 +95,7 @@ class Extension implements ExtensionInterface
 
     /**
      * @param array<string[]> $originalConfig
+     *
      * @return ProviderConfiguration
      */
     private function normalizeProvidersConfig(array $originalConfig): array

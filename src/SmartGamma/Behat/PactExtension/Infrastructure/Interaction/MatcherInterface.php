@@ -10,23 +10,25 @@ use PhpPact\Consumer\Matcher\Model\MatcherInterface as PactPHPMatcherInterface;
 
 interface MatcherInterface
 {
-    const EXACT_TYPE = 'exact';
+    const EXACT_TYPE     = 'exact';
     const EACH_LIKE_TYPE = 'eachLike';
 
     /**
-     * @template T
      * @param T $value
      *
      * @return T
+     *
+     * @template T
      */
     public function exact(mixed $value): mixed;
 
     /**
-     * @template T of bool|float|int|null|string
      * @param T $value
      *
      * @return PactPHPMatcherInterface
      * @throws Exception
+     *
+     * @template T of bool|float|int|null|string
      */
     public function like(mixed $value): PactPHPMatcherInterface;
 
@@ -39,11 +41,12 @@ interface MatcherInterface
     public function dateTimeISO8601(string $value): PactPHPMatcherInterface;
 
     /**
-     * @template T of bool|float|int|null|string
      * @param T $value
      *
      * @return PactPHPMatcherInterface
      * @throws Exception
+     *
+     * @template T of bool|float|int|null|string
      */
     public function boolean(mixed $value): PactPHPMatcherInterface;
 
@@ -64,11 +67,12 @@ interface MatcherInterface
     public function uuid(string $value): PactPHPMatcherInterface;
 
     /**
-     * @template T
      * @param T $object
      *
      * @return PactPHPMatcherInterface
      * @throws Exception
+     *
+     * @template T
      */
     public function eachLike(mixed $object): PactPHPMatcherInterface;
 }

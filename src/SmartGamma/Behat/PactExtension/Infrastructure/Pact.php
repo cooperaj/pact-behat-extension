@@ -11,6 +11,7 @@ use PhpPact\Standalone\MockService\MockServerConfigInterface;
 use SmartGamma\Behat\PactExtension\Extension;
 use SmartGamma\Behat\PactExtension\Infrastructure\Factory\InteractionBuilderFactory;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionCompositor;
+use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRequestDTO;
 use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionResponseDTO;
 
@@ -20,39 +21,29 @@ use SmartGamma\Behat\PactExtension\Infrastructure\Interaction\InteractionRespons
  */
 class Pact
 {
-    private InteractionBuilderFactory $interactionBuilderFactory;
-    private InteractionCompositor $interactionCompositor;
-
-    /** @psalm-var CommonConfiguration */
-    private array $config;
-
-    /** @psalm-var ProviderConfiguration */
-    private array $providersConfig;
-
     /** @var MockServerConfigInterface[] $mockServerConfigs */
     private array $mockServerConfigs = [];
 
     /** @var InteractionBuilder[] $builders */
     private array $builders = [];
 
+    /** @var array<string, InteractionDTO[]> */
+    private array $bufferedInteractions = [];
+
     /**
      * @param InteractionBuilderFactory     $interactionBuilderFactory
      * @param InteractionCompositor         $interactionCompositor
      * @param array                         $config
-     * @phpstan-param CommonConfiguration   $config
      * @param array                         $providersConfig
+     * @phpstan-param CommonConfiguration   $config
      * @phpstan-param ProviderConfiguration $providersConfig
      */
     public function __construct(
-        InteractionBuilderFactory $interactionBuilderFactory,
-        InteractionCompositor $interactionCompositor,
-        array $config,
-        array $providersConfig
+        private readonly InteractionBuilderFactory $interactionBuilderFactory,
+        private readonly InteractionCompositor $interactionCompositor,
+        private readonly array $config,
+        private readonly array $providersConfig,
     ) {
-        $this->interactionBuilderFactory    = $interactionBuilderFactory;
-        $this->interactionCompositor        = $interactionCompositor;
-        $this->config                       = $config;
-        $this->providersConfig              = $providersConfig;
         $this->registerMockServerConfigs();
         $this->registerBuilders();
     }
@@ -93,15 +84,20 @@ class Pact
 
     public function verifyInteractions(): bool
     {
-        foreach ($this->builders as $builder) {
-            $builder->verify();
+        foreach ($this->bufferedInteractions as $providerName => $interactions) {
+            $this->builders[$providerName]->verify();
+            unset($this->bufferedInteractions[$providerName]);
         }
 
         return true;
     }
 
-    public function registerInteraction(InteractionRequestDTO $requestDTO, InteractionResponseDTO $responseDTO, string $providerState): void
-    {
+    public function registerInteraction(
+        InteractionRequestDTO $requestDTO,
+        InteractionResponseDTO $responseDTO,
+        string $providerState,
+        bool $finalInteraction = true,
+    ): void {
         $providerName = $requestDTO->getProviderName();
 
         $request  = $this->interactionCompositor->createRequestFromDTO($requestDTO);
@@ -112,7 +108,46 @@ class Pact
             ->given($providerState)
             ->uponReceiving($requestDTO->getDescription())
             ->with($request)
-            ->willRespondWith($response);
+            ->willRespondWith($response, $finalInteraction);
+
+        // We tell the verification code to verify this builder
+        if (!isset($this->bufferedInteractions[$requestDTO->getProviderName()])) {
+            $this->bufferedInteractions[$requestDTO->getProviderName()] = [];
+        }
+    }
+
+    public function bufferInteraction(
+        InteractionRequestDTO $requestDTO,
+        InteractionResponseDTO $responseDTO,
+        string $providerState,
+    ): void {
+        if (!isset($this->bufferedInteractions[$requestDTO->getProviderName()])) {
+            $this->bufferedInteractions[$requestDTO->getProviderName()] = [];
+        }
+
+        $this->bufferedInteractions[$requestDTO->getProviderName()][] = new InteractionDTO(
+            requestDTO:    $requestDTO,
+            responseDTO:   $responseDTO,
+            providerState: $providerState,
+        );
+    }
+
+    public function registerInteractions(): void
+    {
+        foreach ($this->bufferedInteractions as $providerName => $interactions) {
+            $count = count($interactions);
+
+            foreach ($interactions as $interaction) {
+                $this->registerInteraction(
+                    $interaction->getRequestDTO(),
+                    $interaction->getResponseDTO(),
+                    $interaction->getProviderState(),
+                    $count <= 1,
+                );
+
+                $count--;
+            }
+        }
     }
 
     public function getConsumerVersion(): string
